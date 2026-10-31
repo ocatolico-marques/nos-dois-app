@@ -72,7 +72,7 @@ button { font: inherit; color: inherit; }
 .intro { min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; padding-block: 72px 96px; position: relative; }
 .kicker { font-size: .8125rem; font-weight: 500; letter-spacing: .4em; color: var(--champagne); }
 .intro h1 { line-height: .9; margin-top: 18px; }
-.script { font-family: var(--script); font-weight: 400; font-size: clamp(5rem, 24vw, 11rem); color: var(--cream); text-shadow: 0 0 40px rgba(242, 139, 168, .45); }
+.script { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 500; letter-spacing: -.02em; font-size: clamp(3rem, 15vw, 7rem); color: var(--cream); text-shadow: 0 0 40px rgba(242, 139, 168, .45); }
 .princess { font-family: var(--serif); font-style: italic; font-weight: 300; font-size: clamp(1.8rem, 6vw, 3rem); color: var(--rose); margin-top: -4px; }
 .intro-line { margin-top: 28px; color: var(--cream-soft); font-size: 1.125rem; }
 .intro .btn { margin-top: 30px; min-width: 190px; }
