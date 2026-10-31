@@ -13,14 +13,29 @@
   function setMsg(el, text, bad) { el.textContent = text || ''; el.classList.toggle('bad', !!bad); }
 
   /* álbum: gera links temporários das fotos privadas (pasta album/ do armazenamento) */
+  var CK = 'nos-cache-v1';
+  function readCache(uid) { try { var c = JSON.parse(localStorage.getItem(CK)); return c && c.uid === uid ? c : null; } catch (e) { return null; } }
+  function writeCache(o) { try { localStorage.setItem(CK, JSON.stringify(o)); } catch (e) {} }
+  function preload(m) { Object.keys(m).forEach(function (k) { var i = new Image(); i.decoding = 'async'; i.src = m[k]; }); }
   async function loadAlbum(user) {
     if (!window.setAlbumUrls) return;
     if (!user) { window.setAlbumUrls({}); return; }
+    /* Os links das fotos e o conteúdo ficam guardados neste aparelho: nas próximas vezes o álbum
+       aparece na hora (mesmo link = a foto já está no cache do navegador) e é atualizado por baixo. */
+    var cache = readCache(user.id) || { uid: user.id }, shown = false;
+    if (cache.dados && window.applyContent) {
+      window.applyContent(cache.dados);
+      if (cache.urls && cache.exp > Date.now()) { window.setAlbumUrls(cache.urls); preload(cache.urls); shown = true; }
+    }
     /* carta, quiz, linha do tempo e legendas: tabela privada, só para quem está logado */
     var c = await sb.from('conteudo').select('dados').eq('id', 'site').maybeSingle();
-    if (c.data && window.applyContent) window.applyContent(c.data.dados);
+    if (c.data && window.applyContent) {
+      var novoStr = JSON.stringify(c.data.dados);
+      if (novoStr !== JSON.stringify(cache.dados)) { window.applyContent(c.data.dados); cache.dados = c.data.dados; shown = false; }
+    }
     var paths = window.ALBUM_PATHS || [], m = {};
-    var r = await sb.storage.from('nos').createSignedUrls(paths, 3600);
+    if (shown && cache.urls && paths.every(function (p) { return cache.urls[p]; })) { writeCache(cache); return; }
+    var r = await sb.storage.from('nos').createSignedUrls(paths, 604800);
     (r.data || []).forEach(function (x) { if (x.signedUrl) m[x.path] = x.signedUrl; });
     /* Se algum não estiver em album/NN.jpg (pasta com outro nome, subpasta do zip, raiz do bucket),
        procura pelo nome do arquivo (01, 02, ...) nessas pastas. */
@@ -29,11 +44,12 @@
       var found = await findPhotos(), toSign = [], back = {};
       missing.forEach(function (p) { var f = found[baseName(p)]; if (f) { toSign.push(f); back[f] = p; } });
       if (toSign.length) {
-        var r2 = await sb.storage.from('nos').createSignedUrls(toSign, 3600);
+        var r2 = await sb.storage.from('nos').createSignedUrls(toSign, 604800);
         (r2.data || []).forEach(function (x) { if (x.signedUrl) m[back[x.path]] = x.signedUrl; });
       }
     }
-    window.setAlbumUrls(m);
+    window.setAlbumUrls(m); preload(m);
+    cache.urls = m; cache.exp = Date.now() + 6 * 86400000; writeCache(cache);
   }
   function baseName(p) { return p.split('/').pop().replace(/\.[^.]+$/, '').toLowerCase(); }
   async function findPhotos() {
@@ -77,12 +93,12 @@
     window.nosAuthed = true; render(r.data.user);
     window.openApp();
   });
-  $('nos-logout').addEventListener('click', async function () { await sb.auth.signOut(); window.nosAuthed = false; location.hash = ''; location.reload(); });
+  $('nos-logout').addEventListener('click', async function () { await sb.auth.signOut(); try { localStorage.removeItem(CK); } catch (e) {} window.nosAuthed = false; location.hash = ''; location.reload(); });
 
   /* ---------- foto: enquadramento por tamanho de widget ---------- */
   /* Cada tamanho de widget recebe a sua própria versão da foto, recortada como você escolher e já no
-     tamanho exato em pixels (3x). Assim o iPhone não precisa reduzir a foto e ela fica nítida. */
-  var SIZES = { p: { w: 480, h: 480 }, m: { w: 1020, h: 480 }, g: { w: 1020, h: 1068 } };
+     tamanho exato em pixels (alta resolução). Assim o iPhone não precisa reduzir a foto e ela fica nítida. */
+  var SIZES = { p: { w: 720, h: 720 }, m: { w: 1500, h: 701 }, g: { w: 1500, h: 1571 } };
   var srcImg = null, srcUrl = '', cur = 'p', crop = {};
   function resetCrop() { crop = { p: { z: 1, cx: .5, cy: .5 }, m: { z: 1, cx: .5, cy: .5 }, g: { z: 1, cx: .5, cy: .5 } }; }
   function place(W, H, st) {
@@ -108,7 +124,7 @@
     var S = SIZES[key], c = document.createElement('canvas');
     c.width = S.w; c.height = S.h;
     drawCrop(c.getContext('2d'), S.w, S.h, crop[key]);
-    return new Promise(function (res, rej) { c.toBlob(function (b) { b ? res(b) : rej(new Error('blob')); }, 'image/jpeg', .92); });
+    return new Promise(function (res, rej) { c.toBlob(function (b) { b ? res(b) : rej(new Error('blob')); }, 'image/jpeg', .95); });
   }
   function loadImg(file) {
     return new Promise(function (res, rej) {
@@ -120,10 +136,10 @@
   }
   /* versão geral (aba Nós): até 1600 px */
   function shrink(im) {
-    var k = Math.min(1, 1600 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas');
+    var k = Math.min(1, 2000 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas');
     c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
     c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-    return new Promise(function (res, rej) { c.toBlob(function (b) { b ? res(b) : rej(new Error('blob')); }, 'image/jpeg', .9); });
+    return new Promise(function (res, rej) { c.toBlob(function (b) { b ? res(b) : rej(new Error('blob')); }, 'image/jpeg', .93); });
   }
   function clearPhoto() {
     picked = null; srcImg = null; if (srcUrl) URL.revokeObjectURL(srcUrl); srcUrl = '';
@@ -147,6 +163,7 @@
       paintPreview();
     });
   });
+  $('nos-cancel').addEventListener('click', function () { clearPhoto(); setMsg($('nos-send-msg'), ''); });
   $('nos-zoom').addEventListener('input', function () { if (srcImg) { crop[cur].z = +this.value; paintPreview(); } });
   (function drag() {
     var c = $('nos-crop'), px = 0, py = 0, on = false;

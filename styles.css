@@ -380,3 +380,5 @@ body.gated #view-inicio > section:not(.intro), body.gated .foot, body.gated .tab
 .nos-crop:active { cursor: grabbing; }
 .nos-zoom { width: 100%; accent-color: var(--rose-deep); min-height: 32px; }
 .nos-hint { margin: 0; font-size: .8125rem; color: var(--ink-soft); }
+.nos-cancel { background: transparent !important; color: var(--ink-soft) !important; box-shadow: inset 0 0 0 1.5px #D9AEBB; min-height: 46px; }
+@media (hover: hover) and (pointer: fine) { .nos-cancel:hover { background: #F5D9E0 !important; } }

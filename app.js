@@ -322,7 +322,7 @@ var CONFIG = {
       var url = p.src && albumUrls[p.src];
       var f = document.createElement('figure'); f.className = 'ph' + (url ? '' : ' empty');
       if (url) {
-        f.innerHTML = '<button type="button"><img loading="lazy" alt=""></button><figcaption></figcaption>';
+        f.innerHTML = '<button type="button"><img decoding="async" alt=""></button><figcaption></figcaption>';
         var im = f.querySelector('img'); im.src = url; im.alt = p.caption || 'Foto nossa';
         f.querySelector('figcaption').textContent = p.caption || '';
         f.querySelector('button').addEventListener('click', function () {
