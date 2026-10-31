@@ -366,3 +366,6 @@ body.gated #view-inicio > section:not(.intro), body.gated .foot, body.gated .tab
 .block.alt { background: linear-gradient(180deg, transparent, rgba(30, 10, 22, .92) 14%, rgba(30, 10, 22, .92) 86%, transparent); }
 .tabbar { background: rgba(42, 14, 31, .98); backdrop-filter: none; box-shadow: 0 12px 30px -10px rgba(0, 0, 0, .8); }
 .lb-close { background-color: #2A0E1F; }
+
+/* Pétalas sempre atrás de qualquer conteúdo */
+#petals { z-index: -1; }
