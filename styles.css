@@ -369,3 +369,14 @@ body.gated #view-inicio > section:not(.intro), body.gated .foot, body.gated .tab
 
 /* Pétalas sempre atrás de qualquer conteúdo */
 #petals { z-index: -1; }
+
+/* ===== Enquadramento da foto por tamanho de widget ===== */
+.nos-edit { display: grid; gap: 8px; }
+.nos-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 4px; border-radius: 999px; background: #F5D9E0; }
+.nos-tabs button { min-height: 40px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-soft); font-weight: 500; font-size: .9375rem; cursor: pointer; transition: background-color 160ms var(--ease), color 160ms var(--ease), transform 140ms var(--ease); }
+.nos-tabs button:active { transform: scale(.97); }
+.nos-tabs button[aria-selected="true"] { background: var(--rose-deep); color: #fff; }
+.nos-crop { width: 100%; display: block; border-radius: 14px; border: 1px solid #E7C4CD; background: #1E0A16; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.nos-crop:active { cursor: grabbing; }
+.nos-zoom { width: 100%; accent-color: var(--rose-deep); min-height: 32px; }
+.nos-hint { margin: 0; font-size: .8125rem; color: var(--ink-soft); }
