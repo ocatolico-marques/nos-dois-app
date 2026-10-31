@@ -200,6 +200,7 @@
       var ins = await sb.from('recados').insert({ texto: text || null, foto_path: path });
       if (ins.error) throw ins.error;
       $('nos-text').value = ''; $('nos-count').textContent = '0/280'; clearPhoto(); setMsg(msg, 'Enviado! 💌');
+      atualizarUltimo();
     } catch (err) { setMsg(msg, 'Não deu para enviar. Confira a internet e tente de novo.', true); }
     btn.disabled = false;
   });
@@ -278,11 +279,44 @@
     btn.disabled = false;
   });
 
-  /* quando há login: carrega o cartão e prepara os avisos; abre a tela "Recado novo" se veio da notificação */
+  /* ---------- apagar o meu último recado ---------- */
+  var ultimo = null;
+  async function atualizarUltimo() {
+    var box = $('nos-ultimo');
+    if (!box || !me) return;
+    var r = await sb.from('recados').select('id,texto,foto_path,criado_em').eq('de', me.id).order('criado_em', { ascending: false }).limit(1);
+    ultimo = r.data && r.data[0] || null;
+    if (!ultimo) { box.hidden = true; return; }
+    var d = new Date(ultimo.criado_em);
+    var quando = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    var conteudo = (ultimo.foto_path ? '📷 ' : '') + (ultimo.texto ? '“' + ultimo.texto + '”' : (ultimo.foto_path ? 'foto' : ''));
+    $('nos-ultimo-txt').textContent = 'Enviado em ' + quando + ': ' + conteudo;
+    box.hidden = false;
+  }
+  $('nos-ultimo-del').addEventListener('click', async function () {
+    if (!ultimo) return;
+    if (!confirm('Apagar o seu último recado? Ele deixa de aparecer no widget. A notificação que já foi enviada não dá para desfazer.')) return;
+    var btn = this, msg = $('nos-ultimo-msg');
+    btn.disabled = true; setMsg(msg, 'Apagando…');
+    try {
+      var d = await sb.from('recados').delete().eq('id', ultimo.id);
+      if (d.error) throw d.error;
+      if (ultimo.foto_path) {
+        var base = ultimo.foto_path;
+        await sb.storage.from('nos').remove(['.jpg', '-p.jpg', '-m.jpg', '-g.jpg'].map(function (e) { return base.replace('.jpg', e); }));
+      }
+      setMsg(msg, 'Recado apagado.');
+      await atualizarUltimo();
+    } catch (e) { setMsg(msg, 'Não consegui apagar agora. Tente de novo.', true); }
+    btn.disabled = false;
+  });
+
+  /* quando há login: prepara os avisos e o botão de apagar; abre a tela "Recado novo" se veio da notificação */
   var antesRender = render;
   render = function (user) {
     antesRender(user);
     if (user) {
+      atualizarUltimo().catch(function () {});
       prepararAvisos().catch(function () {});
       if (/[?&]recado=1/.test(location.search) && !window.__recadoAberto) {
         window.__recadoAberto = true;
