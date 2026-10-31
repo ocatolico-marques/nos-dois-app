@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Para Giovanna</title>
+<meta name="description" content="Uma declaração, uma linha do tempo e um quiz para o primeiro aniversário de namoro.">
+<meta name="theme-color" content="#2A0E1F">
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300;1,500&family=Jost:wght@300;400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nós dois">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="locked">
+<canvas id="petals" aria-hidden="true"></canvas>
+
+<main>
+<div class="view" id="view-inicio">
+  <!-- Entrada -->
+  <section class="intro" id="topo" aria-labelledby="intro-title">
+    <p class="kicker">01 · 11 · 2025</p>
+    <h1 id="intro-title"><span class="script">Giovanna</span></h1>
+    <p class="princess">minha princesa</p>
+    <p class="intro-line">Preparei uma coisa pra você.</p>
+    <button class="btn" id="open" type="button">Abrir</button>
+    <span class="scroll-cue" aria-hidden="true"></span>
+  </section>
+
+  <!-- Contador -->
+  <section class="block" id="tempo" aria-labelledby="t-tempo">
+    <div class="wrap">
+      <p class="eyebrow">Nosso tempo</p>
+      <h2 class="display" id="t-tempo">Já são <em>tantos dias</em> juntos</h2>
+      <p class="lead" id="since-line">Desde 1 de novembro de 2025.</p>
+      <div class="clock" id="clock" role="timer" aria-live="off">
+        <div class="tile"><b id="c-months">0</b><span>meses</span></div>
+        <div class="tile"><b id="c-days">0</b><span>dias</span></div>
+        <div class="tile"><b id="c-hours">0</b><span>horas</span></div>
+        <div class="tile"><b id="c-mins">0</b><span>minutos</span></div>
+        <div class="tile"><b id="c-secs">0</b><span>segundos</span></div>
+      </div>
+      <p class="countdown" id="countdown"></p>
+    </div>
+  </section>
+
+  <!-- Linha do tempo -->
+  <section class="block alt" id="historia" aria-labelledby="t-historia">
+    <div class="wrap">
+      <p class="eyebrow">Nossa história</p>
+      <h2 class="display" id="t-historia">Do jeitinho que <em>aconteceu</em></h2>
+      <ol class="timeline" id="timeline"></ol>
+    </div>
+  </section>
+
+  <!-- Quiz -->
+  <section class="block" id="quiz" aria-labelledby="t-quiz">
+    <div class="wrap narrow">
+      <p class="eyebrow">O quiz</p>
+      <h2 class="display" id="t-quiz">Será que você <em>lembra de tudo?</em></h2>
+      <p class="lead">Cinco perguntas sobre a gente. No final, a sua carta se abre.</p>
+
+      <div class="card" id="quiz-card" aria-live="polite">
+        <div class="draft" id="draft" hidden>Rascunho: o gabarito ainda não foi preenchido. Qualquer resposta vale como certa.</div>
+        <div id="quiz-start">
+          <p class="card-text">Pronta, princesa?</p>
+          <button class="btn" id="start" type="button">Começar o quiz</button>
+        </div>
+        <div id="quiz-run" hidden>
+          <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+          <p class="count" id="count"></p>
+          <form id="q-form" novalidate>
+            <fieldset class="q">
+              <legend id="q-text"></legend>
+              <div id="q-input"></div>
+            </fieldset>
+            <p class="hintline" id="q-error" role="alert" hidden></p>
+            <button class="btn" id="answer" type="submit">Responder</button>
+          </form>
+          <div class="feedback" id="feedback" hidden tabindex="-1">
+            <p class="fb-title" id="fb-title"></p>
+            <p class="fb-text" id="fb-text"></p>
+            <button class="btn" id="next" type="button">Próxima</button>
+          </div>
+        </div>
+        <div id="quiz-end" hidden>
+          <p class="score" id="score"></p>
+          <h3 class="end-title" id="end-title"></h3>
+          <p class="card-text" id="end-text"></p>
+          <button class="btn" id="open-letter" type="button">Abrir minha carta</button>
+        </div>
+      </div>
+      <p class="skip"><button class="link" id="skip" type="button">Pular o quiz e ler a carta</button></p>
+    </div>
+  </section>
+
+  <!-- Carta -->
+  <section class="block letter-sec" id="carta" aria-labelledby="t-carta" hidden>
+    <div class="wrap narrow">
+      <p class="eyebrow">Para você</p>
+      <h2 class="display" id="t-carta">Minha <em>princesa</em></h2>
+      <div class="letter" id="letter"></div>
+      <p class="sign" id="sign"></p>
+      <a class="btn music" id="music" href="#" target="_blank" rel="noopener" hidden>Ouça a nossa música 🎶</a>
+      <div class="surprise" id="surprise" hidden></div>
+    </div>
+  </section>
+
+  <section class="block" id="explorar" aria-labelledby="t-explorar">
+    <div class="wrap">
+      <p class="eyebrow">E tem mais</p>
+      <h2 class="display" id="t-explorar">Ainda não <em>acabou</em></h2>
+      <div class="tiles">
+        <button class="go-tile" type="button" data-go="album"><span class="tn">Álbum</span><span class="td">As fotos que a gente guardou.</span></button>
+        <button class="go-tile" type="button" data-go="jogos"><span class="tn">Jogos</span><span class="td">Memória, pétalas e uma raspadinha.</span></button>
+        <button class="go-tile" type="button" data-go="vales"><span class="tn">Vales</span><span class="td">Cupons, a roleta do date e uma cápsula do tempo.</span></button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<section class="view" id="view-album" hidden aria-labelledby="t-album">
+  <div class="wrap page-head">
+    <p class="eyebrow">Nosso álbum</p>
+    <h1 class="display" id="t-album">Um ano em <em>imagens</em></h1>
+    <p class="lead">Os momentos que a gente guardou. Toque numa foto para ver em tamanho grande.</p>
+  </div>
+  <div class="wrap"><div class="gallery" id="gallery"></div></div>
+</section>
+
+<section class="view" id="view-jogos" hidden aria-labelledby="t-jogos">
+  <div class="wrap page-head">
+    <p class="eyebrow">Jogos</p>
+    <h1 class="display" id="t-jogos">Um pouquinho de <em>brincadeira</em></h1>
+    <p class="lead">Três joguinhos feitos para você. Sem pressa, sem placar certo.</p>
+  </div>
+  <div class="wrap games">
+    <article class="card game" aria-labelledby="g1">
+      <h2 id="g1">Jogo da memória</h2>
+      <p class="g-sub">Encontre os pares. Menos jogadas, mais pontos de carinho.</p>
+      <div class="memory" id="memory"></div>
+      <p class="g-status" id="mem-status" aria-live="polite">Jogadas: 0</p>
+      <button class="btn" id="mem-reset" type="button">Embaralhar de novo</button>
+    </article>
+    <article class="card game" aria-labelledby="g2">
+      <h2 id="g2">Caça-pétalas</h2>
+      <p class="g-sub">Toque nas pétalas que caem. Você tem 30 segundos.</p>
+      <div class="catch" id="catch" aria-label="Área do jogo"><span class="catch-hint" id="catch-hint">Toque em Começar</span></div>
+      <p class="g-status" id="catch-status" aria-live="polite">Pétalas: 0 · 30s</p>
+      <button class="btn" id="catch-start" type="button">Começar</button>
+    </article>
+    <article class="card game" aria-labelledby="g3">
+      <h2 id="g3">Raspadinha</h2>
+      <p class="g-sub">Raspe com o dedo para descobrir o seu prêmio.</p>
+      <div class="scratch" id="scratch-box">
+        <div class="prize" id="prize" aria-live="polite"><span class="prize-label">Seu prêmio</span><b id="prize-text"></b></div>
+        <canvas id="scratch" aria-hidden="true"></canvas>
+      </div>
+      <div class="row">
+        <button class="btn" id="scratch-again" type="button">Outra raspadinha</button>
+        <button class="link" id="scratch-reveal" type="button">Revelar sem raspar</button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<section class="view" id="view-vales" hidden aria-labelledby="t-vales">
+  <div class="wrap page-head">
+    <p class="eyebrow">Vales</p>
+    <h1 class="display" id="t-vales">Promessas que <em>valem</em></h1>
+    <p class="lead">Cada vale é um compromisso e só pode ser resgatado uma vez. Escolha com carinho.</p>
+  </div>
+  <div class="wrap">
+    <ul class="vouchers" id="vouchers"></ul>
+
+    <div class="duo">
+      <article class="card game" aria-labelledby="g4">
+        <h2 id="g4">Roleta do date</h2>
+        <p class="g-sub">Sem saber o que fazer? Deixe a sorte escolher.</p>
+        <div class="wheel-wrap"><i class="pointer" aria-hidden="true"></i><canvas id="wheel" width="560" height="560" aria-hidden="true"></canvas></div>
+        <p class="wheel-result" id="wheel-result" aria-live="polite">Gire para sortear.</p>
+        <button class="btn" id="spin" type="button">Girar a roleta</button>
+      </article>
+      <article class="card game capsule" aria-labelledby="g5">
+        <h2 id="g5">Cápsula do tempo</h2>
+        <div class="lock" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 10V8a5 5 0 0 1 10 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h1Zm2 0h6V8a3 3 0 0 0-6 0v2Z"/></svg></div>
+        <p class="g-sub" id="capsule-status"></p>
+        <div class="capsule-msg" id="capsule-msg" hidden></div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="view-nos" hidden aria-labelledby="t-nos">
+  <div class="wrap page-head">
+    <p class="eyebrow">Nós dois</p>
+    <h1 class="display" id="t-nos">Um recado <em>só nosso</em></h1>
+    <p class="lead">Uma foto ou uma frase que vai direto para a tela de quem a gente ama.</p>
+  </div>
+  <div class="wrap nos">
+    <div class="card nos-card" id="nos-login">
+      <h2>Entrar</h2>
+      <p class="g-sub">Só nós dois temos acesso.</p>
+      <form id="nos-login-form">
+        <label class="nos-lbl" for="nos-email">E-mail</label>
+        <input class="field" id="nos-email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" required>
+        <label class="nos-lbl" for="nos-pass">Senha</label>
+        <input class="field" id="nos-pass" type="password" autocomplete="current-password" required>
+        <button class="btn" type="submit">Entrar</button>
+        <p class="nos-msg" id="nos-login-msg" role="status"></p>
+      </form>
+    </div>
+    <div id="nos-app" hidden>
+      <div class="nos-top"><p>Olá, <strong id="nos-who"></strong></p><button class="link" id="nos-logout" type="button">Sair</button></div>
+      <form class="card nos-card" id="nos-send-form">
+        <h2>Enviar um recado</h2>
+        <label class="nos-pick btn" for="nos-file">Escolher foto</label>
+        <input id="nos-file" type="file" accept="image/*" hidden>
+        <img id="nos-preview" class="nos-preview" alt="Prévia da foto escolhida" hidden>
+        <label class="nos-lbl" for="nos-text">Frase (opcional)</label>
+        <textarea class="field" id="nos-text" maxlength="280" rows="3" placeholder="Escreva algo bonito…"></textarea>
+        <p class="nos-count" id="nos-count">0/280</p>
+        <button class="btn" type="submit">Enviar 💌</button>
+        <p class="nos-msg" id="nos-send-msg" role="status"></p>
+      </form>
+      <h2 class="nos-h">Recados</h2>
+      <div id="nos-feed"></div>
+    </div>
+  </div>
+</section>
+</main>
+
+
+<nav class="tabbar" id="tabbar" aria-label="Páginas">
+  <button type="button" data-go="inicio" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3 10.5V21h6v-6h6v6h6V10.5L12 3Z"/></svg><span>Início</span></button>
+  <button type="button" data-go="album"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm1 2v7.6l3.4-3.4a1 1 0 0 1 1.4 0L13 14.4l1.6-1.6a1 1 0 0 1 1.4 0L19 15.8V7H5Zm10.5 2a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3Z"/></svg><span>Álbum</span></button>
+  <button type="button" data-go="jogos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.2C6 16.6 3 13.4 3 9.6 3 6.9 5.1 5 7.6 5c1.7 0 3.3.9 4.4 2.4C13.1 5.9 14.7 5 16.4 5 18.9 5 21 6.9 21 9.6c0 3.8-3 7-9 11.6Z"/></svg><span>Jogos</span></button>
+  <button type="button" data-go="vales"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4V7Zm6 1v2h2V8H9Zm0 3v2h2v-2H9Zm0 3v2h2v-2H9Z"/></svg><span>Vales</span></button>
+  <button type="button" data-go="nos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 3.5V17a2 2 0 0 1-2-2V6Zm5.5 2.5v1.6L12 12l3.5-1.9V8.5L12 10.4 8.5 8.5Z"/></svg><span>Nós</span></button>
+</nav>
+
+<dialog class="lightbox" id="lightbox" aria-label="Foto ampliada">
+  <form method="dialog"><button class="lb-close" aria-label="Fechar">×</button></form>
+  <img id="lb-img" alt=""><p id="lb-cap"></p>
+</dialog>
+
+<dialog class="confirm" id="confirm" aria-labelledby="cf-title" aria-describedby="cf-text">
+  <form method="dialog" class="cf-box">
+    <svg class="cf-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.2C6 16.6 3 13.4 3 9.6 3 6.9 5.1 5 7.6 5c1.7 0 3.3.9 4.4 2.4C13.1 5.9 14.7 5 16.4 5 18.9 5 21 6.9 21 9.6c0 3.8-3 7-9 11.6Z"/></svg>
+    <h2 id="cf-title">Resgatar este vale?</h2>
+    <p class="cf-name" id="cf-name"></p>
+    <p id="cf-text">Você tem certeza que deseja resgatar agora este vale? Essa ação não pode ser desfeita.</p>
+    <div class="cf-actions">
+      <button class="btn cf-yes" value="yes">Sim, resgatar</button>
+      <button class="btn cf-no" value="no" autofocus>Ainda não</button>
+    </div>
+  </form>
+</dialog>
+
+<footer class="foot">
+  <p>Feito com carinho · 01/11/2025 → para sempre</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="app.js"></script>
+<script src="nos.js"></script>
+</body>
+</html>
