@@ -246,4 +246,119 @@
     var r = await sb.auth.getSession();
     render(r.data.session ? r.data.session.user : null);
   });
+
+  /* =====================================================================
+     Recado mais recente (cartão no Início + tela "Recado novo") e avisos no celular
+     ===================================================================== */
+  var VAPID_PUBLIC = 'BIv1V1cB_Gd_QC8zU-L1sKfsX_OAD_pxcF6CDg1KpB-c3dkztRVAxFs3sDk3vh6F677wN1dUnZc0A7rgl3hcqAg';
+
+  function quando(iso) {
+    var d = new Date(iso);
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' · ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+  /* último recado enviado pela OUTRA pessoa (e a foto, com link temporário) */
+  async function ultimoDoOutro() {
+    if (!me) return null;
+    var r = await sb.from('recados').select('id,de,texto,foto_path,criado_em').neq('de', me.id).order('criado_em', { ascending: false }).limit(1);
+    if (r.error || !r.data || !r.data.length) return null;
+    var x = r.data[0];
+    if (x.foto_path) {
+      var s = await sb.storage.from('nos').createSignedUrl(x.foto_path, 3600);
+      x.url = s.data && s.data.signedUrl;
+    }
+    return x;
+  }
+  async function atualizarCartao() {
+    var sec = $('recado-hoje');
+    if (!sec) return;
+    var x = await ultimoDoOutro();
+    if (!x) { sec.hidden = true; return; }
+    $('rh-meta').textContent = (PEOPLE_OUTRO || 'Seu amor') + ' · ' + quando(x.criado_em);
+    var im = $('rh-img'); if (x.url) { im.src = x.url; im.hidden = false; } else { im.hidden = true; }
+    var t = $('rh-text'); t.textContent = x.texto || ''; t.hidden = !x.texto;
+    sec.hidden = false;
+  }
+  var PEOPLE_OUTRO = '';
+  async function mostrarRecadoNovo() {
+    var x = await ultimoDoOutro();
+    if (!x) return;
+    var im = $('rd-img'); if (x.url) { im.src = x.url; im.hidden = false; } else { im.hidden = true; }
+    var t = $('rd-text'); t.textContent = x.texto || ''; t.hidden = !x.texto;
+    var dlg = $('recado-dialog');
+    if (dlg.showModal) { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute('open', '');
+    atualizarCartao();
+  }
+  $('recado-dialog').addEventListener('click', function (e) { if (e.target === this) this.close(); });
+  window.nosAtualizarCartao = atualizarCartao;
+
+  /* ---------- avisos (notificações) ---------- */
+  function b64(s) {
+    var p = '='.repeat((4 - s.length % 4) % 4), r = atob((s + p).replace(/-/g, '+').replace(/_/g, '/')), a = new Uint8Array(r.length);
+    for (var i = 0; i < r.length; i++) a[i] = r.charCodeAt(i);
+    return a;
+  }
+  function instalado() { return window.navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches); }
+  var swReg = null;
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(function (r) { swReg = r; }).catch(function () {});
+    navigator.serviceWorker.addEventListener('message', function (e) {
+      if (e.data && e.data.type === 'recado-novo' && window.nosAuthed) { window.openApp && window.openApp(); mostrarRecadoNovo(); }
+    });
+  }
+  async function prepararAvisos() {
+    var box = $('nos-avisos'), btn = $('nos-avisos-btn'), txt = $('nos-avisos-txt');
+    if (!box) return;
+    box.hidden = false; btn.hidden = true;
+    if (!instalado() || !('PushManager' in window)) {
+      txt.textContent = 'Para receber avisos de recado novo, abra o site pela tela inicial: Compartilhar → Adicionar à Tela de Início.';
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      txt.textContent = 'Os avisos estão bloqueados. Ative em Ajustes → Notificações → Nós dois.';
+      return;
+    }
+    var reg = await navigator.serviceWorker.ready, sub = await reg.pushManager.getSubscription();
+    if (sub && Notification.permission === 'granted') {
+      /* garante que o aparelho está registrado na conta atual */
+      var j = sub.toJSON();
+      await sb.from('push_subs').upsert({ user_id: me.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }, { onConflict: 'endpoint' });
+      txt.textContent = 'Avisos ativados neste aparelho ✓ Você recebe uma notificação quando chegar um recado.';
+      return;
+    }
+    txt.textContent = 'Receba uma notificação no celular quando chegar um recado novo.';
+    btn.hidden = false;
+  }
+  $('nos-avisos-btn').addEventListener('click', async function () {
+    var btn = this, txt = $('nos-avisos-txt');
+    btn.disabled = true;
+    try {
+      var perm = await Notification.requestPermission();
+      if (perm !== 'granted') { txt.textContent = 'Sem permissão não dá para avisar. Ative em Ajustes → Notificações → Nós dois.'; btn.disabled = false; return; }
+      var reg = await navigator.serviceWorker.ready;
+      var sub = await reg.pushManager.getSubscription() || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64(VAPID_PUBLIC) });
+      var j = sub.toJSON();
+      var r = await sb.from('push_subs').upsert({ user_id: me.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }, { onConflict: 'endpoint' });
+      if (r.error) throw r.error;
+      btn.hidden = true;
+      txt.textContent = 'Avisos ativados neste aparelho ✓ Você recebe uma notificação quando chegar um recado.';
+    } catch (e) {
+      txt.textContent = 'Não consegui ativar os avisos agora. Tente de novo em instantes.';
+    }
+    btn.disabled = false;
+  });
+
+  /* quando há login: carrega o cartão e prepara os avisos; abre a tela "Recado novo" se veio da notificação */
+  var antesRender = render;
+  render = function (user) {
+    antesRender(user);
+    if (user) {
+      atualizarCartao();
+      prepararAvisos().catch(function () {});
+      if (/[?&]recado=1/.test(location.search) && !window.__recadoAberto) {
+        window.__recadoAberto = true;
+        setTimeout(function () { window.openApp && window.openApp(); mostrarRecadoNovo(); try { history.replaceState(null, '', location.pathname); } catch (e) {} }, 400);
+      }
+    }
+  };
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && me) atualizarCartao(); });
 })();

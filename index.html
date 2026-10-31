@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Nós dois">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=11">
+<link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body class="locked gated">
 <canvas id="petals" aria-hidden="true"></canvas>
@@ -39,6 +39,19 @@
       <p class="gate-msg" id="nos-login-msg" role="status"></p>
     </form>
     <span class="scroll-cue" aria-hidden="true"></span>
+  </section>
+
+  <!-- Recado mais recente (aparece depois do login) -->
+  <section class="block recado-hoje" id="recado-hoje" aria-labelledby="t-recado" hidden>
+    <div class="wrap">
+      <p class="eyebrow">Recado mais recente</p>
+      <article class="nos-item rh-card">
+        <p class="nos-meta" id="rh-meta"></p>
+        <img id="rh-img" alt="Foto do recado" hidden>
+        <p class="nos-text-out" id="rh-text" hidden></p>
+        <a class="link rh-widget" href="scriptable:///run/N%C3%B3s%20dois?modo=atualizar">Atualizar o widget</a>
+      </article>
+    </div>
   </section>
 
   <!-- Contador -->
@@ -214,6 +227,11 @@
   <div class="wrap nos">
     <div id="nos-app" hidden>
       <div class="nos-top"><p>Olá, <strong id="nos-who"></strong></p><button class="link" id="nos-logout" type="button">Sair</button></div>
+      <div class="card nos-card" id="nos-avisos" hidden>
+        <h2>Avisos no celular</h2>
+        <p class="g-sub" id="nos-avisos-txt"></p>
+        <button class="btn" type="button" id="nos-avisos-btn">Ativar avisos</button>
+      </div>
       <form class="card nos-card" id="nos-send-form">
         <h2>Enviar um recado</h2>
         <label class="nos-pick btn" for="nos-file">Escolher foto</label>
@@ -253,6 +271,17 @@
   <button type="button" data-go="nos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 3.5V17a2 2 0 0 1-2-2V6Zm5.5 2.5v1.6L12 12l3.5-1.9V8.5L12 10.4 8.5 8.5Z"/></svg><span>Nós</span></button>
 </nav>
 
+<dialog class="confirm recado" id="recado-dialog" aria-labelledby="rd-title">
+  <div class="cf-box rd-box">
+    <p class="eyebrow">Recado novo</p>
+    <h2 id="rd-title">Você recebeu um recado 💌</h2>
+    <img id="rd-img" alt="Foto do recado" hidden>
+    <p class="rd-text" id="rd-text" hidden></p>
+    <a class="btn rd-widget" id="rd-widget" href="scriptable:///run/N%C3%B3s%20dois?modo=atualizar">Atualizar o widget</a>
+    <form method="dialog"><button class="btn">Fechar</button></form>
+  </div>
+</dialog>
+
 <dialog class="lightbox" id="lightbox" aria-label="Foto ampliada">
   <form method="dialog"><button class="lb-close" aria-label="Fechar">×</button></form>
   <img id="lb-img" alt=""><p id="lb-cap"></p>
@@ -278,7 +307,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="app.js?v=11"></script>
-<script src="nos.js?v=11"></script>
+<script src="app.js?v=13"></script>
+<script src="nos.js?v=13"></script>
 </body>
 </html>

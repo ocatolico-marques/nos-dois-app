@@ -382,3 +382,14 @@ body.gated #view-inicio > section:not(.intro), body.gated .foot, body.gated .tab
 .nos-hint { margin: 0; font-size: .8125rem; color: var(--ink-soft); }
 .nos-cancel { background: transparent !important; color: var(--ink-soft) !important; box-shadow: inset 0 0 0 1.5px #D9AEBB; min-height: 46px; }
 @media (hover: hover) and (pointer: fine) { .nos-cancel:hover { background: #F5D9E0 !important; } }
+
+/* ===== Recado mais recente (Início) e tela "Recado novo" ===== */
+.recado-hoje { padding-block: clamp(48px, 10vw, 96px) 0; }
+.rh-card { margin-top: 6px; }
+.rh-card img { max-height: 70vh; object-fit: cover; }
+.rd-box { display: grid; gap: 12px; text-align: center; max-width: 420px; }
+.rd-box .eyebrow { margin: 0; color: var(--rose-deep); }
+.rd-box h2 { font-family: var(--serif); font-weight: 500; font-size: 1.6rem; line-height: 1.15; margin: 0; color: var(--ink); }
+.rd-box img { width: 100%; max-height: 52vh; object-fit: cover; border-radius: 14px; display: block; }
+.rd-text { margin: 0; font-family: var(--serif); font-size: 1.5rem; line-height: 1.3; color: var(--ink); overflow-wrap: anywhere; }
+.rd-box .btn { width: 100%; }
