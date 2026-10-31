@@ -16,7 +16,10 @@
   async function loadAlbum(user) {
     if (!window.setAlbumUrls) return;
     if (!user) { window.setAlbumUrls({}); return; }
-    var r = await sb.storage.from('nos').createSignedUrls(window.ALBUM_PATHS || [], 3600), m = {};
+    /* carta, quiz, linha do tempo e legendas: tabela privada, só para quem está logado */
+    var c = await sb.from('conteudo').select('dados').eq('id', 'site').maybeSingle();
+    if (c.data && window.applyContent) window.applyContent(c.data.dados);
+    var r =await sb.storage.from('nos').createSignedUrls(window.ALBUM_PATHS || [], 3600), m = {};
     (r.data || []).forEach(function (x) { if (x.signedUrl) m[x.path] = x.signedUrl; });
     window.setAlbumUrls(m);
   }

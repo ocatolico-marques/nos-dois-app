@@ -1,62 +1,13 @@
 /* ===================================================================
-   CONTEÚDO: tudo o que é pessoal fica aqui. Campos vazios (null ou '') não aparecem.
+   CONTEÚDO PÚBLICO. A carta, o quiz, a linha do tempo, a música e as fotos (com legendas)
+   ficam no Supabase (tabela conteudo) e só carregam depois do login.
    =================================================================== */
 var CONFIG = {
   start: new Date(2025, 10, 1),        // 01/11/2025, início do namoro
   anniversary: new Date(2026, 10, 1),  // 1 ano de namoro: 01/11/2026
 
-  /* sdate/stext só aparecem depois do quiz, para não entregar as respostas. */
-  timeline: [
-    { title: 'Tudo começou na paróquia', date: '', text: 'Frequentávamos a mesma paróquia. Foi ali que a nossa história começou.', photo: '' },
-    { title: 'O dia que saímos pela primeira vez', sdate: '26 de janeiro de 2025', photo: '' },
-    { title: 'O dia em que ficamos pela primeira vez', sdate: '1 de junho de 2025', photo: '' },
-    { title: 'O pedido de namoro', stext: 'Foi no Via Fico.', photo: '' },
-    { title: 'Começamos a namorar', date: '1 de novembro de 2025', text: '', photo: '' },
-    { title: 'Desde então', text: 'Já viajamos juntos e já te dei buquês de rosas. Os números estão no quiz.', photo: '' }
-  ],
-
-  /* Gabarito do quiz. Preencher answer:
-       date   -> 'AAAA-MM-DD'      number -> 3
-       choice -> texto da opção certa, com a lista em options (a ordem é embaralhada)
-       number -> pode ser uma lista, ex.: [7, 8]
-       text   -> 'nome do restaurante'
-     Enquanto answer for null, qualquer resposta vale como certa e aparece o aviso de rascunho. */
-  quiz: [
-    { type: 'date', q: 'Em que dia saímos pela primeira vez?', answer: '2025-01-26' },
-    { type: 'date', q: 'E em que dia ficamos pela primeira vez?', answer: '2025-06-01' },
-    { type: 'choice', q: 'Em qual restaurante eu te pedi em namoro?', options: ['Via Fico', 'Mézi', 'Padaria Karina', 'Manduu'], answer: 'Via Fico' },
-    { type: 'number', q: 'Quantas viagens de dormir já fizemos juntos?', answer: 4, min: 0, max: 99 },
-    { type: 'number', q: 'Quantos buquês, de 3 rosas ou mais, eu já te dei?', answer: [7, 8], min: 0, max: 99 }  // TODO: confirmar o número exato
-  ],
-
-  /* Carta: textos do Fernando (do site anterior), com "aniversário" ajustado para aniversário de namoro. */
-  letter: [
-    'Giovanna, minha princesa,',
-    'Você é o meu presente diário.',
-    'Desde o dia em que te conheci, minha vida ganhou mais cor e sentido. 🌹',
-    'Cada olhar, cada abraço e cada riso teu são luz e conforto pro meu coração.',
-    'Hoje é o nosso dia, mas quem se sente presenteado sou eu, por ter você.',
-    'Que nunca faltem motivos pra sorrir e que Deus te abençoe infinitamente. 💫',
-    'Feliz um ano nosso, minha flor. 💌'
-  ],
-  music: 'https://youtu.be/-YzDsDMYqdw?si=ZEtCK44VVrJgu4VR',
-  photos: [
-    { src: 'album/01.jpg', caption: 'Entre adereços e risadas' },
-    { src: 'album/02.jpg', caption: 'Do nosso jeito' },
-    { src: 'album/03.jpg', caption: 'Sorrisos de baixo para cima' },
-    { src: 'album/04.jpg', caption: 'Dois personagens' },
-    { src: 'album/05.jpg', caption: 'Um beijo, diante de Nossa Senhora' },
-    { src: 'album/06.jpg', caption: 'Caretas no carro' },
-    { src: 'album/07.jpg', caption: 'Sorrisos de sobra' },
-    { src: 'album/08.jpg', caption: 'Parceiros de treino' },
-    { src: 'album/09.jpg', caption: 'Um beijo na igreja' },
-    { src: 'album/10.jpg', caption: 'Uma tarde no parque' },
-    { src: 'album/11.jpg', caption: 'Mundo de cabeça para baixo' },
-    { src: 'album/12.jpg', caption: 'Dengo' },
-    { src: 'album/13.jpg', caption: 'Uma flor para você' },
-    { src: 'album/14.jpg', caption: 'Espelho, espelho meu' },
-    { src: 'album/15.jpg', caption: 'Borrão de felicidade' }
-  ],  // sem src, a foto vira um espaço reservado (com ratio: '4 / 5')
+  /* preenchidos por applyContent() depois do login */
+  timeline: [], quiz: [], letter: [], music: '', photos: [], sign: '', surprise: '',
 
   /* Sugestões: o namorado edita. */
   vouchers: [
@@ -69,10 +20,7 @@ var CONFIG = {
     { t: 'Um desejo seu', d: 'Um pedido razoável, sem perguntas.' }
   ],
   dates: ['Jantar a dois', 'Piquenique', 'Cinema com pipoca', 'Sorvete depois da missa', 'Pizza e filme em casa', 'Passeio sem destino', 'Café da tarde', 'Viagem-surpresa'],
-  capsule: { unlock: new Date(2027, 10, 1), message: '' },  // message: texto que aparece em 01/11/2027
-
-  sign: '',      // ex.: 'Com todo o meu amor, Fernando'
-  surprise: ''   // ex.: 'Sábado, 20h: coloque um vestido bonito. Eu busco você.'
+  capsule: { unlock: new Date(2027, 10, 1), message: '' }
 };
 
 /* =================================================================== */
@@ -165,7 +113,7 @@ var CONFIG = {
 
   /* ---------- linha do tempo ---------- */
   var tl = $('timeline');
-  CONFIG.timeline.forEach(function (it) {
+  function buildTimeline() { tl.innerHTML = ''; CONFIG.timeline.forEach(function (it) {
     var li = document.createElement('li'); li.className = 'tl-item';
     var html = '';
     if (it.date) html += '<p class="tl-date"></p>';
@@ -182,14 +130,25 @@ var CONFIG = {
     if (it.text) li.querySelector('.tl-text:not(.tl-secret)').textContent = it.text;
     if (it.photo) { var im = li.querySelector('img'); im.src = it.photo; im.alt = it.title; }
     tl.appendChild(li);
-  });
+  }); }
 
   /* ---------- quiz ---------- */
-  var Q = CONFIG.quiz, idx = 0, score = 0, answered = false;
-  var anyOpen = Q.some(function (q) { return q.answer === null || q.answer === undefined; });
+  var Q = [], idx = 0, score = 0, answered = false;
   function revealTimeline() { document.body.classList.add('quiz-done'); }
-  if (anyOpen) $('draft').hidden = false;
-  Q.forEach(function (q) { if (q.options && q.options.length) for (var k = q.options.length - 1; k > 0; k--) { var r = Math.floor(Math.random() * (k + 1)), t = q.options[k]; q.options[k] = q.options[r]; q.options[r] = t; } });
+  function prepQuiz() {
+    Q = CONFIG.quiz;
+    $('draft').hidden = !Q.some(function (q) { return q.answer === null || q.answer === undefined; });
+    Q.forEach(function (q) { if (q.options && q.options.length) for (var k = q.options.length - 1; k > 0; k--) { var r = Math.floor(Math.random() * (k + 1)), t = q.options[k]; q.options[k] = q.options[r]; q.options[r] = t; } });
+  }
+  /* Conteúdo privado (vem do Supabase depois do login, via nos.js). */
+  window.applyContent = function (c) {
+    if (!c) return;
+    CONFIG.timeline = c.timeline || []; CONFIG.quiz = c.quiz || []; CONFIG.letter = c.letter || [];
+    CONFIG.music = c.music || ''; CONFIG.photos = c.photos || []; CONFIG.sign = c.sign || ''; CONFIG.surprise = c.surprise || '';
+    CONFIG.capsule.message = c.capsuleMessage || '';
+    window.ALBUM_PATHS = CONFIG.photos.map(function (p) { return p.src; }).filter(Boolean);
+    buildTimeline(); prepQuiz(); buildGallery(); if ($('capsule-status')) capsule();
+  };
   var el = { start: $('quiz-start'), run: $('quiz-run'), end: $('quiz-end'), form: $('q-form'), text: $('q-text'), input: $('q-input'), err: $('q-error'), fb: $('feedback'), count: $('count'), bar: $('bar') };
 
   function field(q) {
@@ -350,7 +309,7 @@ var CONFIG = {
   var lb = $('lightbox');
   /* As fotos ficam no armazenamento privado do Supabase: só aparecem depois do login (nos.js chama setAlbumUrls). */
   var albumUrls = {};
-  window.ALBUM_PATHS = CONFIG.photos.map(function (p) { return p.src; }).filter(Boolean);
+  window.ALBUM_PATHS = [];
   function buildGallery() {
     $('gallery').innerHTML = '';
     CONFIG.photos.forEach(function (p) {
