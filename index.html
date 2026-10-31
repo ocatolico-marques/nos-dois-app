@@ -18,7 +18,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="styles.css">
 </head>
-<body class="locked">
+<body class="locked gated">
 <canvas id="petals" aria-hidden="true"></canvas>
 
 <main>
@@ -29,7 +29,15 @@
     <h1 id="intro-title"><span class="script">Giovanna</span></h1>
     <p class="princess">minha princesa</p>
     <p class="intro-line">Preparei uma coisa pra você.</p>
-    <button class="btn" id="open" type="button">Abrir</button>
+    <button class="btn" id="open" type="button">Entrar</button>
+    <form class="gate" id="nos-login-form" hidden>
+      <label for="nos-email">E-mail</label>
+      <input class="field" id="nos-email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" required>
+      <label for="nos-pass">Senha</label>
+      <input class="field" id="nos-pass" type="password" autocomplete="current-password" required>
+      <button class="btn" type="submit">Entrar</button>
+      <p class="gate-msg" id="nos-login-msg" role="status"></p>
+    </form>
     <span class="scroll-cue" aria-hidden="true"></span>
   </section>
 
@@ -204,18 +212,6 @@
     <p class="lead">Uma foto ou uma frase que vai direto para a tela de quem a gente ama.</p>
   </div>
   <div class="wrap nos">
-    <div class="card nos-card" id="nos-login">
-      <h2>Entrar</h2>
-      <p class="g-sub">Só nós dois temos acesso.</p>
-      <form id="nos-login-form">
-        <label class="nos-lbl" for="nos-email">E-mail</label>
-        <input class="field" id="nos-email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" required>
-        <label class="nos-lbl" for="nos-pass">Senha</label>
-        <input class="field" id="nos-pass" type="password" autocomplete="current-password" required>
-        <button class="btn" type="submit">Entrar</button>
-        <p class="nos-msg" id="nos-login-msg" role="status"></p>
-      </form>
-    </div>
     <div id="nos-app" hidden>
       <div class="nos-top"><p>Olá, <strong id="nos-who"></strong></p><button class="link" id="nos-logout" type="button">Sair</button></div>
       <form class="card nos-card" id="nos-send-form">

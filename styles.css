@@ -349,3 +349,12 @@ body::after {
 .nos-item .nos-del { color: var(--ink-soft); padding: 4px 0 0; min-height: 36px; font-size: .875rem; }
 .nos-empty { color: var(--cream-soft); text-align: center; padding: 18px 0; }
 @media (max-width: 719px) { .tabbar button { min-width: 56px; padding: 8px 8px; } }
+
+/* ===== Entrada com login: tudo trancado até entrar ===== */
+body.gated #view-inicio > section:not(.intro), body.gated .foot, body.gated .tabbar { display: none; }
+.gate { display: grid; gap: 8px; width: min(100%, 320px); margin-top: 22px; text-align: left; }
+.gate label { font-size: .875rem; font-weight: 500; color: var(--cream-soft); margin-top: 4px; }
+.gate .btn { margin-top: 12px; width: 100%; }
+.gate-msg { min-height: 1.4em; margin: 4px 0 0; text-align: center; font-size: .9375rem; color: #FFB3C6; }
+.gate[hidden] { display: none; }
+.intro .btn[hidden] { display: none; }

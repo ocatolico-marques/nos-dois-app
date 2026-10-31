@@ -20,12 +20,19 @@
     (r.data || []).forEach(function (x) { if (x.signedUrl) m[x.path] = x.signedUrl; });
     window.setAlbumUrls(m);
   }
-  sb.auth.getSession().then(function (r) { loadAlbum(r.data.session && r.data.session.user); });
+  /* sessão já existente (ex.: app instalado): o botão vira "Abrir" e entra direto */
+  sb.auth.getSession().then(function (r) {
+    var user = r.data.session && r.data.session.user;
+    if (!user) return;
+    window.nosAuthed = true; render(user);
+    $('open').textContent = 'Abrir';
+    var h = location.hash.replace('#', '');
+    if (h && h !== 'inicio') window.openApp(h);
+  });
 
   function render(user) {
     if ((user && user.id) !== (me && me.id)) loadAlbum(user);
     me = user;
-    $('nos-login').hidden = !!user;
     $('nos-app').hidden = !user;
     if (user) { $('nos-who').textContent = PEOPLE[user.email] || user.email; loadFeed(); }
   }
@@ -39,9 +46,10 @@
     btn.disabled = false;
     if (r.error) { setMsg(msg, 'E-mail ou senha incorretos.', true); return; }
     setMsg(msg, ''); $('nos-pass').value = '';
-    render(r.data.user);
+    window.nosAuthed = true; render(r.data.user);
+    window.openApp();
   });
-  $('nos-logout').addEventListener('click', async function () { await sb.auth.signOut(); loadedOnce = false; render(null); });
+  $('nos-logout').addEventListener('click', async function () { await sb.auth.signOut(); window.nosAuthed = false; location.hash = ''; location.reload(); });
 
   /* ---------- foto: reduz antes de enviar (rápido e leve) ---------- */
   function shrink(file) {

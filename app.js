@@ -120,12 +120,19 @@ var CONFIG = {
   })();
 
   /* ---------- entrada ---------- */
-  $('open').addEventListener('click', function () {
-    document.body.classList.remove('locked');
+  /* Tudo fica trancado até o login (nos.js define window.nosAuthed e chama openApp). */
+  window.openApp = function (view) {
+    if (!window.nosAuthed) return;
+    document.body.classList.remove('locked', 'gated');
     document.body.classList.add('opened');
     petals.burst();
+    if (view && VIEWS.indexOf(view) > 0) { go(view); return; }
     var t = $('tempo');
     setTimeout(function () { t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); }, 80);
+  };
+  $('open').addEventListener('click', function () {
+    if (window.nosAuthed) { window.openApp(); return; }
+    this.hidden = true; $('nos-login-form').hidden = false; $('nos-email').focus();
   });
 
   /* ---------- contador ---------- */
@@ -320,6 +327,7 @@ var CONFIG = {
      ================================================================= */
   var VIEWS = ['inicio', 'album', 'jogos', 'vales', 'nos'], current = 'inicio', scratchReady = false;
   function go(name) {
+    if (!window.nosAuthed || document.body.classList.contains('gated')) return;
     if (VIEWS.indexOf(name) < 0) name = 'inicio';
     VIEWS.forEach(function (v) { $('view-' + v).hidden = v !== name; });
     [].forEach.call(document.querySelectorAll('#tabbar button'), function (b) {
@@ -588,9 +596,6 @@ var CONFIG = {
   capsule();
 
   /* abrir direto numa página (#album, #jogos, #vales): só depois de tudo estar montado */
-  (function startFromHash() {
-    var h = location.hash.replace('#', '');
-    if (VIEWS.indexOf(h) > 0) { document.body.classList.remove('locked'); document.body.classList.add('opened'); go(h); }
-  })();
+  /* (a abertura direta por #hash agora é feita em nos.js, só depois de confirmar o login) */
 
 })();
