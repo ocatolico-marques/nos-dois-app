@@ -81,8 +81,7 @@ var CONFIG = {
     document.body.classList.add('opened');
     petals.burst();
     if (view && VIEWS.indexOf(view) > 0) { go(view); return; }
-    var t = $('tempo');
-    setTimeout(function () { t.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); }, 80);
+    window.scrollTo(0, 0);
   };
   $('open').addEventListener('click', function () {
     if (window.nosAuthed) { window.openApp(); return; }
