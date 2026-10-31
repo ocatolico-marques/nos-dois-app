@@ -41,8 +41,14 @@ var CONFIG = {
       var d = .4 + Math.random() * .9;
       return { x: Math.random() * W, y: fromTop ? -30 - Math.random() * H * .4 : Math.random() * H, s: 7 + d * 11, d: d, vy: .25 + d * .7, ph: Math.random() * 6.28, r: Math.random() * 6.28, vr: (Math.random() - .5) * .02, col: colors[(Math.random() * colors.length) | 0], a: .35 + d * .45 };
     }
+    var lastW = 0;
     function size() {
-      W = innerWidth; H = innerHeight; c.width = W * dpr; c.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      /* Ao rolar no celular a barra do navegador encolhe/cresce e dispara "resize".
+         Só recria as pétalas se a LARGURA mudou; senão elas ficariam saltando de lugar. */
+      var same = innerWidth === lastW;
+      lastW = innerWidth; W = innerWidth; H = same ? Math.max(H, innerHeight) : innerHeight;
+      c.width = W * dpr; c.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (same && list.length) return;
       var n = W < 700 ? 16 : 28; list = []; for (var i = 0; i < n; i++) list.push(make(false));
     }
     function draw(p) {
@@ -308,7 +314,7 @@ var CONFIG = {
   var cameraSvg = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m4 17 5-5 4 4 2-2 5 5"/></svg>';
   var lb = $('lightbox');
   /* As fotos ficam no armazenamento privado do Supabase: só aparecem depois do login (nos.js chama setAlbumUrls). */
-  var albumUrls = {};
+  var albumUrls = {}, albumLoaded = false;
   window.ALBUM_PATHS = [];
   function buildGallery() {
     $('gallery').innerHTML = '';
@@ -325,14 +331,14 @@ var CONFIG = {
         });
       } else {
         f.style.aspectRatio = p.ratio || '4 / 5';
-        f.innerHTML = '<div class="slot">' + cameraSvg + '<figcaption></figcaption><span>' + (p.src ? 'Entre na aba Nós para ver' : 'Foto em breve') + '</span></div>';
+        f.innerHTML = '<div class="slot">' + cameraSvg + '<figcaption></figcaption><span>' + (!p.src ? 'Foto em breve' : albumLoaded ? 'Foto não encontrada' : 'Carregando…') + '</span></div>';
         f.querySelector('figcaption').textContent = p.caption || '';
       }
       $('gallery').appendChild(f);
     });
   }
   buildGallery();
-  window.setAlbumUrls = function (m) { albumUrls = m || {}; buildGallery(); buildMemory(); };
+  window.setAlbumUrls = function (m) { albumUrls = m || {}; albumLoaded = true; buildGallery(); buildMemory(); };
   lb.addEventListener('click', function (e) { if (e.target === lb) lb.close(); });
 
   /* ---------- jogo da memória ---------- */

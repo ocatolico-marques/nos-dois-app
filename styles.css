@@ -358,3 +358,11 @@ body.gated #view-inicio > section:not(.intro), body.gated .foot, body.gated .tab
 .gate-msg { min-height: 1.4em; margin: 4px 0 0; text-align: center; font-size: .9375rem; color: #FFB3C6; }
 .gate[hidden] { display: none; }
 .intro .btn[hidden] { display: none; }
+
+/* ===== Cartões mais sólidos: nada translúcido sobre as pétalas ===== */
+.tile { background: #3C1530; backdrop-filter: none; border-color: rgba(255, 243, 238, .22); box-shadow: 0 10px 24px -14px rgba(0, 0, 0, .7); }
+.go-tile { background: #3C1530; border-color: rgba(255, 243, 238, .22); box-shadow: 0 10px 24px -14px rgba(0, 0, 0, .7); }
+.ph.empty { background: #3C1530; border-color: rgba(235, 203, 149, .7); }
+.block.alt { background: linear-gradient(180deg, transparent, rgba(30, 10, 22, .92) 14%, rgba(30, 10, 22, .92) 86%, transparent); }
+.tabbar { background: rgba(42, 14, 31, .98); backdrop-filter: none; box-shadow: 0 12px 30px -10px rgba(0, 0, 0, .8); }
+.lb-close { background-color: #2A0E1F; }

@@ -19,9 +19,34 @@
     /* carta, quiz, linha do tempo e legendas: tabela privada, só para quem está logado */
     var c = await sb.from('conteudo').select('dados').eq('id', 'site').maybeSingle();
     if (c.data && window.applyContent) window.applyContent(c.data.dados);
-    var r =await sb.storage.from('nos').createSignedUrls(window.ALBUM_PATHS || [], 3600), m = {};
+    var paths = window.ALBUM_PATHS || [], m = {};
+    var r = await sb.storage.from('nos').createSignedUrls(paths, 3600);
     (r.data || []).forEach(function (x) { if (x.signedUrl) m[x.path] = x.signedUrl; });
+    /* Se algum não estiver em album/NN.jpg (pasta com outro nome, subpasta do zip, raiz do bucket),
+       procura pelo nome do arquivo (01, 02, ...) nessas pastas. */
+    var missing = paths.filter(function (p) { return !m[p]; });
+    if (missing.length) {
+      var found = await findPhotos(), toSign = [], back = {};
+      missing.forEach(function (p) { var f = found[baseName(p)]; if (f) { toSign.push(f); back[f] = p; } });
+      if (toSign.length) {
+        var r2 = await sb.storage.from('nos').createSignedUrls(toSign, 3600);
+        (r2.data || []).forEach(function (x) { if (x.signedUrl) m[back[x.path]] = x.signedUrl; });
+      }
+    }
     window.setAlbumUrls(m);
+  }
+  function baseName(p) { return p.split('/').pop().replace(/\.[^.]+$/, '').toLowerCase(); }
+  async function findPhotos() {
+    var out = {}, dirs = ['album', ''], seen = 0, uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-/i;
+    while (dirs.length && seen++ < 8) {
+      var dir = dirs.shift(), r = await sb.storage.from('nos').list(dir, { limit: 200 });
+      (r.data || []).forEach(function (it) {
+        var full = dir ? dir + '/' + it.name : it.name;
+        if (it.id) { if (/\.(jpe?g|png|webp)$/i.test(it.name)) out[baseName(it.name)] = out[baseName(it.name)] || full; }
+        else if (!uuid.test(it.name) && dir.split('/').length < 2) dirs.push(full);
+      });
+    }
+    return out;
   }
   /* sessão já existente (ex.: app instalado): o botão vira "Abrir" e entra direto */
   sb.auth.getSession().then(function (r) {
