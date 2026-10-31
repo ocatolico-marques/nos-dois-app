@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Nós dois">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=13">
+<link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body class="locked gated">
 <canvas id="petals" aria-hidden="true"></canvas>
@@ -39,19 +39,6 @@
       <p class="gate-msg" id="nos-login-msg" role="status"></p>
     </form>
     <span class="scroll-cue" aria-hidden="true"></span>
-  </section>
-
-  <!-- Recado mais recente (aparece depois do login) -->
-  <section class="block recado-hoje" id="recado-hoje" aria-labelledby="t-recado" hidden>
-    <div class="wrap">
-      <p class="eyebrow">Recado mais recente</p>
-      <article class="nos-item rh-card">
-        <p class="nos-meta" id="rh-meta"></p>
-        <img id="rh-img" alt="Foto do recado" hidden>
-        <p class="nos-text-out" id="rh-text" hidden></p>
-        <a class="link rh-widget" href="scriptable:///run/N%C3%B3s%20dois?modo=atualizar">Atualizar o widget</a>
-      </article>
-    </div>
   </section>
 
   <!-- Contador -->
@@ -255,8 +242,6 @@
         <button class="btn" type="submit">Enviar 💌</button>
         <p class="nos-msg" id="nos-send-msg" role="status"></p>
       </form>
-      <h2 class="nos-h">Recados</h2>
-      <div id="nos-feed"></div>
     </div>
   </div>
 </section>
@@ -275,8 +260,7 @@
   <div class="cf-box rd-box">
     <p class="eyebrow">Recado novo</p>
     <h2 id="rd-title">Você recebeu um recado 💌</h2>
-    <img id="rd-img" alt="Foto do recado" hidden>
-    <p class="rd-text" id="rd-text" hidden></p>
+    <p class="rd-text">Toque abaixo para ver no seu widget.</p>
     <a class="btn rd-widget" id="rd-widget" href="scriptable:///run/N%C3%B3s%20dois?modo=atualizar">Atualizar o widget</a>
     <form method="dialog"><button class="btn">Fechar</button></form>
   </div>
@@ -307,7 +291,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="app.js?v=13"></script>
-<script src="nos.js?v=13"></script>
+<script src="app.js?v=14"></script>
+<script src="nos.js?v=14"></script>
 </body>
 </html>

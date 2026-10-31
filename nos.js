@@ -7,7 +7,7 @@
   var $ = function (id) { return document.getElementById(id); };
   if (!window.supabase || !$('view-nos')) return;
   var sb = window.supabase.createClient(SB_URL, SB_KEY);
-  var me = null, loadedOnce = false, picked = null;
+  var me = null, picked = null;
 
   function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
   function setMsg(el, text, bad) { el.textContent = text || ''; el.classList.toggle('bad', !!bad); }
@@ -78,7 +78,7 @@
     if ((user && user.id) !== (me && me.id)) loadAlbum(user);
     me = user;
     $('nos-app').hidden = !user;
-    if (user) { $('nos-who').textContent = PEOPLE[user.email] || user.email; loadFeed(); }
+    if (user) { $('nos-who').textContent = PEOPLE[user.email] || user.email; }
   }
 
   /* ---------- login ---------- */
@@ -200,45 +200,9 @@
       var ins = await sb.from('recados').insert({ texto: text || null, foto_path: path });
       if (ins.error) throw ins.error;
       $('nos-text').value = ''; $('nos-count').textContent = '0/280'; clearPhoto(); setMsg(msg, 'Enviado! 💌');
-      loadFeed();
     } catch (err) { setMsg(msg, 'Não deu para enviar. Confira a internet e tente de novo.', true); }
     btn.disabled = false;
   });
-
-  /* ---------- lista ---------- */
-  async function loadFeed() {
-    var box = $('nos-feed');
-    if (!loadedOnce) box.innerHTML = '<p class="nos-empty">Carregando…</p>';
-    var r = await sb.from('recados').select('id,de,texto,foto_path,criado_em').order('criado_em', { ascending: false }).limit(40);
-    if (r.error) { box.innerHTML = '<p class="nos-empty">Não consegui carregar agora.</p>'; return; }
-    loadedOnce = true;
-    var rows = r.data, urls = {};
-    var paths = rows.filter(function (x) { return x.foto_path; }).map(function (x) { return x.foto_path; });
-    if (paths.length) {
-      var s = await sb.storage.from('nos').createSignedUrls(paths, 3600);
-      (s.data || []).forEach(function (x) { if (x.signedUrl) urls[x.path] = x.signedUrl; });
-    }
-    if (!rows.length) { box.innerHTML = '<p class="nos-empty">Nada por aqui ainda. Mande o primeiro recado. 💌</p>'; return; }
-    box.innerHTML = '';
-    rows.forEach(function (x) {
-      var mine = x.de === me.id, li = document.createElement('article');
-      li.className = 'nos-item' + (mine ? ' mine' : '');
-      var d = new Date(x.criado_em);
-      var when = d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' · ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-      li.innerHTML = '<p class="nos-meta">' + (mine ? 'Você' : 'Seu amor') + ' · ' + when + '</p>' +
-        (x.foto_path && urls[x.foto_path] ? '<img alt="Foto enviada" loading="lazy" src="' + esc(urls[x.foto_path]) + '">' : '') +
-        (x.texto ? '<p class="nos-text-out">' + esc(x.texto) + '</p>' : '') +
-        (mine ? '<button type="button" class="link nos-del">Apagar</button>' : '');
-      var del = li.querySelector('.nos-del');
-      if (del) del.addEventListener('click', async function () {
-        if (!confirm('Apagar este recado?')) return;
-        if (x.foto_path) await sb.storage.from('nos').remove(['.jpg', '-p.jpg', '-m.jpg', '-g.jpg'].map(function (e) { return x.foto_path.replace('.jpg', e); }));
-        await sb.from('recados').delete().eq('id', x.id);
-        loadFeed();
-      });
-      box.appendChild(li);
-    });
-  }
 
   /* abre a aba: confere se já há sessão e atualiza a lista */
   window.addEventListener('viewchange', async function (e) {
@@ -252,44 +216,11 @@
      ===================================================================== */
   var VAPID_PUBLIC = 'BIv1V1cB_Gd_QC8zU-L1sKfsX_OAD_pxcF6CDg1KpB-c3dkztRVAxFs3sDk3vh6F677wN1dUnZc0A7rgl3hcqAg';
 
-  function quando(iso) {
-    var d = new Date(iso);
-    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' · ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  }
-  /* último recado enviado pela OUTRA pessoa (e a foto, com link temporário) */
-  async function ultimoDoOutro() {
-    if (!me) return null;
-    var r = await sb.from('recados').select('id,de,texto,foto_path,criado_em').neq('de', me.id).order('criado_em', { ascending: false }).limit(1);
-    if (r.error || !r.data || !r.data.length) return null;
-    var x = r.data[0];
-    if (x.foto_path) {
-      var s = await sb.storage.from('nos').createSignedUrl(x.foto_path, 3600);
-      x.url = s.data && s.data.signedUrl;
-    }
-    return x;
-  }
-  async function atualizarCartao() {
-    var sec = $('recado-hoje');
-    if (!sec) return;
-    var x = await ultimoDoOutro();
-    if (!x) { sec.hidden = true; return; }
-    $('rh-meta').textContent = (PEOPLE_OUTRO || 'Seu amor') + ' · ' + quando(x.criado_em);
-    var im = $('rh-img'); if (x.url) { im.src = x.url; im.hidden = false; } else { im.hidden = true; }
-    var t = $('rh-text'); t.textContent = x.texto || ''; t.hidden = !x.texto;
-    sec.hidden = false;
-  }
-  var PEOPLE_OUTRO = '';
-  async function mostrarRecadoNovo() {
-    var x = await ultimoDoOutro();
-    if (!x) return;
-    var im = $('rd-img'); if (x.url) { im.src = x.url; im.hidden = false; } else { im.hidden = true; }
-    var t = $('rd-text'); t.textContent = x.texto || ''; t.hidden = !x.texto;
+  function mostrarRecadoNovo() {
     var dlg = $('recado-dialog');
     if (dlg.showModal) { if (!dlg.open) dlg.showModal(); } else dlg.setAttribute('open', '');
-    atualizarCartao();
   }
   $('recado-dialog').addEventListener('click', function (e) { if (e.target === this) this.close(); });
-  window.nosAtualizarCartao = atualizarCartao;
 
   /* ---------- avisos (notificações) ---------- */
   function b64(s) {
@@ -352,7 +283,6 @@
   render = function (user) {
     antesRender(user);
     if (user) {
-      atualizarCartao();
       prepararAvisos().catch(function () {});
       if (/[?&]recado=1/.test(location.search) && !window.__recadoAberto) {
         window.__recadoAberto = true;
@@ -360,5 +290,4 @@
       }
     }
   };
-  document.addEventListener('visibilitychange', function () { if (!document.hidden && me) atualizarCartao(); });
 })();
