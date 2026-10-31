@@ -71,8 +71,9 @@
     window.nosAuthed = true; render(user);
     $('open').textContent = 'Abrir';
     var h = location.hash.replace('#', '');
-    if (h && h !== 'inicio') window.openApp(h);
-  });
+    window.openApp(h && h !== 'inicio' ? h : undefined);
+  }).catch(function () {}).then(function () { document.body.classList.remove('checking'); });
+  setTimeout(function () { document.body.classList.remove('checking'); }, 4000);
 
   function render(user) {
     if ((user && user.id) !== (me && me.id)) loadAlbum(user);
