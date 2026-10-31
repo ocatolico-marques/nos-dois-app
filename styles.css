@@ -396,4 +396,9 @@ body.gated #view-inicio > section:not(.intro), body.gated .foot, body.gated .tab
 
 /* depois do login a entrada some: a tela inicial começa em "Nosso tempo" */
 body.opened .intro { display: none; }
-body.checking .intro { visibility: hidden; }
+body.checking .intro { display: none; }
+
+/* pétalas visíveis: o fundo do site vem do html, e o corpo fica transparente para não cobrir as pétalas */
+body { background: transparent; }
+body::before { z-index: -2; }
+#petals { z-index: -1; }
