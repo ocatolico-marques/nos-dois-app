@@ -76,11 +76,36 @@
   setTimeout(function () { document.body.classList.remove('checking'); }, 4000);
 
   function render(user) {
-    if ((user && user.id) !== (me && me.id)) loadAlbum(user);
+    if ((user && user.id) !== (me && me.id)) { loadAlbum(user); if (user) sincronizarJogo(user); }
     me = user;
     $('nos-app').hidden = !user;
     if (user) { $('nos-who').textContent = PEOPLE[user.email] || user.email; }
   }
+
+  /* ---------- pontos e vales na conta ---------- */
+  var jogoOk = false, jogoT = 0;
+  async function sincronizarJogo(user) {
+    jogoOk = false;
+    try {
+      var r = await sb.from('jogo_estado').select('bal,total,day,got,used').eq('user_id', user.id).maybeSingle();
+      if (r.error) return;
+      if (r.data) window.Pontos.carregar(r.data);   // a conta manda
+      jogoOk = true;
+      if (!r.data) salvarJogo();                    // primeira vez: sobe o que já havia neste aparelho
+    } catch (e) {}
+  }
+  async function salvarJogo() {
+    if (!me || !jogoOk || !window.Pontos || !window.Pontos.estado) return;
+    var e = window.Pontos.estado();
+    try { await sb.from('jogo_estado').upsert({ user_id: me.id, bal: e.bal, total: e.total, day: e.day, got: e.got, used: e.used, atualizado: new Date().toISOString() }, { onConflict: 'user_id' }); } catch (x) {}
+  }
+  window.onJogoSalvar = function () { clearTimeout(jogoT); jogoT = setTimeout(salvarJogo, 700); };
+  document.addEventListener('visibilitychange', function () { if (document.hidden) { clearTimeout(jogoT); salvarJogo(); } });
+  /* avisa o Fernando quando ela resgata um vale (o Fernando, ao testar, não avisa ninguém) */
+  window.onVale = function (nome, custo) {
+    if (!me || PEOPLE[me.email]) return;
+    sb.from('resgates').insert({ vale: nome, custo: custo }).then(function () {}, function () {});
+  };
 
   /* ---------- login ---------- */
   $('nos-login-form').addEventListener('submit', async function (e) {
@@ -94,7 +119,7 @@
     window.nosAuthed = true; render(r.data.user);
     window.openApp();
   });
-  $('nos-logout').addEventListener('click', async function () { await sb.auth.signOut(); try { localStorage.removeItem(CK); } catch (e) {} window.nosAuthed = false; location.hash = ''; location.reload(); });
+  $('nos-logout').addEventListener('click', async function () { await sb.auth.signOut(); try { localStorage.removeItem(CK); localStorage.removeItem('giovanna-pontos'); localStorage.removeItem('giovanna-vales'); } catch (e) {} window.nosAuthed = false; location.hash = ''; location.reload(); });
 
   /* ---------- foto: enquadramento por tamanho de widget ---------- */
   /* Cada tamanho de widget recebe a sua própria versão da foto, recortada como você escolher e já no

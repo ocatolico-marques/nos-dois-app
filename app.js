@@ -371,7 +371,7 @@ var CONFIG = {
   var PTS_KEY = 'giovanna-pontos', pts = { bal: 0, total: 0, day: '', got: {} }, onPts = [];
   try { var ps = JSON.parse(localStorage.getItem(PTS_KEY) || 'null'); if (ps && typeof ps.bal === 'number') pts = ps; } catch (e) {}
   var todayKey = function () { var n = new Date(); return n.getFullYear() + '-' + pad2(n.getMonth() + 1) + '-' + pad2(n.getDate()); };
-  var savePts = function () { try { localStorage.setItem(PTS_KEY, JSON.stringify(pts)); } catch (e) {} };
+  var savePts = function () { try { localStorage.setItem(PTS_KEY, JSON.stringify(pts)); } catch (e) {} if (window.onJogoSalvar) window.onJogoSalvar(); };
   var ptsToastT = 0;
   function ptsToast(msg) {
     var t = $('pts-toast'); if (!t) { t = document.createElement('div'); t.id = 'pts-toast'; t.setAttribute('aria-live', 'polite'); document.body.appendChild(t); }
@@ -539,7 +539,7 @@ var CONFIG = {
   /* ---------- vales ---------- */
   var USED_KEY = 'giovanna-vales', used = {};
   try { used = JSON.parse(localStorage.getItem(USED_KEY) || '{}'); } catch (e) { used = {}; }
-  var saveUsed = function () { try { localStorage.setItem(USED_KEY, JSON.stringify(used)); } catch (e) {} };
+  var saveUsed = function () { try { localStorage.setItem(USED_KEY, JSON.stringify(used)); } catch (e) {} if (window.onJogoSalvar) window.onJogoSalvar(); };
   var VCOST = [1500, 300, 200, 120, 60, 250, 550];
   var costOf = function (i) { return (CONFIG.vouchers[i] && CONFIG.vouchers[i].cost) || VCOST[i] || 100; };
   function renderVouchers() {
@@ -570,6 +570,7 @@ var CONFIG = {
     if (cf.returnValue === 'yes' && i > -1 && !used[i] && window.Pontos.spend(costOf(i))) {
       var n = new Date(); used[i] = pad2(n.getDate()) + '/' + pad2(n.getMonth() + 1);
       saveUsed(); petals.burst(); renderVouchers();
+      if (window.onVale) window.onVale(CONFIG.vouchers[i].t, costOf(i));
     } else if (cfFrom && document.contains(cfFrom)) cfFrom.focus();
   });
   /* o resgate não é reversível: o botão de reativar só aparece com ?reset na URL (uso do Fernando) */
@@ -583,6 +584,13 @@ var CONFIG = {
   }
   renderVouchers();
   window.Pontos.onChange(renderVouchers);
+  /* pontos e vales ficam na conta (Supabase); nos.js lê e grava por aqui */
+  window.Pontos.estado = function () { return { bal: pts.bal, total: pts.total, day: pts.day, got: pts.got, used: used }; };
+  window.Pontos.carregar = function (r) {
+    pts = { bal: r.bal || 0, total: r.total || 0, day: r.day || "", got: r.got || {} }; used = r.used || {};
+    try { localStorage.setItem(PTS_KEY, JSON.stringify(pts)); localStorage.setItem(USED_KEY, JSON.stringify(used)); } catch (e) {}
+    drawPts(); renderVouchers();
+  };
 
   /* abrir direto numa página (#album, #jogos, #vales): só depois de tudo estar montado */
   /* (a abertura direta por #hash agora é feita em nos.js, só depois de confirmar o login) */

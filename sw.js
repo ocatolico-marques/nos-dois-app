@@ -9,18 +9,19 @@ self.addEventListener('push', function (e) {
     body: d.body || 'Você recebeu um recado.',
     icon: 'icon-192.png',
     badge: 'icon-192.png',
-    tag: 'recado',
+    tag: d.tipo === 'vale' ? 'vale' : 'recado',
     renotify: true,
-    data: { url: './?recado=1' }
+    data: { tipo: d.tipo || 'recado' }
   }));
 });
 
 self.addEventListener('notificationclick', function (e) {
+  var vale = e.notification.data && e.notification.data.tipo === 'vale';
   e.notification.close();
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
     for (var i = 0; i < list.length; i++) {
-      if ('focus' in list[i]) { list[i].postMessage({ type: 'recado-novo' }); return list[i].focus(); }
+      if ('focus' in list[i]) { if (!vale) list[i].postMessage({ type: 'recado-novo' }); return list[i].focus(); }
     }
-    return self.clients.openWindow('./?recado=1');
+    return self.clients.openWindow(vale ? './' : './?recado=1');
   }));
 });
