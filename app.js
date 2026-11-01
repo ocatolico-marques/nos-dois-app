@@ -19,7 +19,6 @@ var CONFIG = {
     { t: 'Um piquenique no parque', d: 'Cesta, toalha e a gente num dia só nosso.' },
     { t: 'Um desejo seu', d: 'Um pedido razoável, sem perguntas.' }
   ],
-  capsule: { unlock: new Date(2027, 10, 1), message: '' }
 };
 
 /* =================================================================== */
@@ -149,9 +148,8 @@ var CONFIG = {
     if (!c) return;
     CONFIG.timeline = c.timeline || []; CONFIG.quiz = c.quiz || []; CONFIG.letter = c.letter || [];
     CONFIG.music = c.music || ''; CONFIG.photos = c.photos || []; CONFIG.sign = c.sign || ''; CONFIG.surprise = c.surprise || '';
-    CONFIG.capsule.message = c.capsuleMessage || '';
     window.ALBUM_PATHS = CONFIG.photos.map(function (p) { return p.src; }).filter(Boolean);
-    buildTimeline(); prepQuiz(); buildGallery(); if ($('capsule-status')) capsule();
+    buildTimeline(); prepQuiz(); buildGallery();
   };
   var el = { start: $('quiz-start'), run: $('quiz-run'), end: $('quiz-end'), form: $('q-form'), text: $('q-text'), input: $('q-input'), err: $('q-error'), fb: $('feedback'), count: $('count'), bar: $('bar') };
 
@@ -300,8 +298,7 @@ var CONFIG = {
     window.scrollTo(0, 0);
     try { history.replaceState(null, '', name === 'inicio' ? location.pathname + location.search : '#' + name); } catch (e) {}
     if (name === 'jogos' && !scratchReady) { scratchReady = true; newScratch(); }
-    if (name === 'vales') { drawWheel(); capsule(); }
-    window.dispatchEvent(new CustomEvent('viewchange', { detail: name }));
+        window.dispatchEvent(new CustomEvent('viewchange', { detail: name }));
   }
   document.addEventListener('click', function (e) { var b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
   addEventListener('hashchange', function () {
@@ -555,21 +552,6 @@ var CONFIG = {
   }
   renderVouchers();
   window.Pontos.onChange(renderVouchers);
-
-  /* ---------- cápsula do tempo ---------- */
-  function capsule() {
-    var u = CONFIG.capsule.unlock, now = new Date(), st = $('capsule-status'), msg = $('capsule-msg');
-    var when = pad2(u.getDate()) + '/' + pad2(u.getMonth() + 1) + '/' + u.getFullYear();
-    if (now < u) {
-      var days = Math.ceil((u - now) / 86400000);
-      st.textContent = 'Trancada até ' + when + '. Uma mensagem para abrirmos juntos no nosso próximo aniversário. Faltam ' + plural(days, 'dia', 'dias') + '.';
-      msg.hidden = true;
-    } else {
-      st.textContent = 'A cápsula abriu hoje.';
-      msg.textContent = CONFIG.capsule.message || 'Feliz aniversário de 2 anos, minha princesa.'; msg.hidden = false;
-    }
-  }
-  capsule();
 
   /* abrir direto numa página (#album, #jogos, #vales): só depois de tudo estar montado */
   /* (a abertura direta por #hash agora é feita em nos.js, só depois de confirmar o login) */
