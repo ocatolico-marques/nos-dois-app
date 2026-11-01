@@ -2,7 +2,7 @@
 (function () {
   var SB_URL = 'https://fapfosqocvtawkhgavap.supabase.co';
   var SB_KEY = 'sb_publishable_gklz-L7kiemOKagFhu5GWg_cUZdYk0J'; // chave pública, feita para ficar no site
-  var PEOPLE = { 'fernandinhomlima@gmail.com': 'Fernando' }; // 'email@exemplo.com': 'Nome', para mostrar o nome em vez de "Seu amor"
+  var PEOPLE = { 'fernandinhomlima@gmail.com': 'Fernando', 'gi.giovanna0412@gmail.com': 'Giovanna' }; // email -> nome mostrado
 
   var $ = function (id) { return document.getElementById(id); };
   if (!window.supabase || !$('view-nos')) return;
@@ -103,7 +103,7 @@
   document.addEventListener('visibilitychange', function () { if (document.hidden) { clearTimeout(jogoT); salvarJogo(); } });
   /* avisa o Fernando quando ela resgata um vale (o Fernando, ao testar, não avisa ninguém) */
   window.onVale = function (nome, custo) {
-    if (!me || PEOPLE[me.email]) return;
+    if (!me || me.email === 'fernandinhomlima@gmail.com') return;
     sb.from('resgates').insert({ vale: nome, custo: custo }).then(function () {}, function () {});
   };
 
