@@ -19,7 +19,6 @@ var CONFIG = {
     { t: 'Um piquenique no parque', d: 'Cesta, toalha e a gente num dia só nosso.' },
     { t: 'Um desejo seu', d: 'Um pedido razoável, sem perguntas.' }
   ],
-  dates: ['Jantar a dois', 'Piquenique', 'Cinema com pipoca', 'Sorvete depois da missa', 'Pizza e filme em casa', 'Passeio sem destino', 'Café da tarde', 'Viagem-surpresa'],
   capsule: { unlock: new Date(2027, 10, 1), message: '' }
 };
 
@@ -556,38 +555,6 @@ var CONFIG = {
   }
   renderVouchers();
   window.Pontos.onChange(renderVouchers);
-
-  /* ---------- roleta do date ---------- */
-  var wc = $('wheel'), wx = wc.getContext('2d'), rot = 0, spinning = false;
-  var WCOL = ['#C94F73', '#F28BA8', '#8C2D52', '#F6B7C6'], WTXT = ['#fff', '#3A1428', '#fff', '#3A1428'];
-  function drawWheel() {
-    var items = CONFIG.dates, n = items.length, a = Math.PI * 2 / n, c = 280, R = 272;
-    wx.clearRect(0, 0, 560, 560);
-    for (var i = 0; i < n; i++) {
-      wx.beginPath(); wx.moveTo(c, c); wx.arc(c, c, R, rot + i * a, rot + (i + 1) * a); wx.closePath();
-      wx.fillStyle = WCOL[i % WCOL.length]; wx.fill();
-      wx.save(); wx.translate(c, c); wx.rotate(rot + (i + .5) * a);
-      wx.textAlign = 'right'; wx.textBaseline = 'middle'; wx.fillStyle = WTXT[i % WTXT.length];
-      var size = 25; wx.font = '500 ' + size + 'px Jost, sans-serif';
-      while (wx.measureText(items[i]).width > 190 && size > 14) { size--; wx.font = '500 ' + size + 'px Jost, sans-serif'; }
-      wx.fillText(items[i], R - 26, 0); wx.restore();
-    }
-    wx.beginPath(); wx.arc(c, c, 34, 0, 6.3); wx.fillStyle = '#FFF6F4'; wx.fill();
-    wx.lineWidth = 4; wx.strokeStyle = '#3A1428'; wx.stroke();
-  }
-  $('spin').addEventListener('click', function () {
-    if (spinning) return; spinning = true; $('spin').disabled = true; $('wheel-result').textContent = 'Girando…';
-    var start = rot, total = Math.PI * 2 * (5 + Math.random() * 3) + Math.random() * Math.PI * 2, dur = reduce ? 600 : 4600, t0 = performance.now();
-    (function step(now) {
-      var p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
-      rot = start + total * e; drawWheel();
-      if (p < 1) { requestAnimationFrame(step); return; }
-      var n = CONFIG.dates.length, a = Math.PI * 2 / n, theta = ((-Math.PI / 2 - rot) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-      var idx = Math.floor(theta / a);
-      $('wheel-result').textContent = 'Hoje é dia de: ' + CONFIG.dates[idx];
-      spinning = false; $('spin').disabled = false; petals.burst(); window.Pontos.earn('roleta', 5, 5);
-    })(t0);
-  });
 
   /* ---------- cápsula do tempo ---------- */
   function capsule() {
