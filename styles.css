@@ -452,3 +452,10 @@ body::before { z-index: -2; }
 #w-list { display: grid; gap: 8px; margin-bottom: 14px; }
 #w-list button { width: 100%; min-height: 46px; padding: 0 16px; border-radius: 14px; background: #f3dfe3; color: #2b1022; font-size: 1rem; text-align: left; }
 #w-list button:disabled { opacity: .55; }
+
+#world { height: 100vh; height: 100dvh; }
+.w-pad { display: none; }
+.w-joy { position: absolute; width: 124px; height: 124px; margin: -62px 0 0 -62px; border-radius: 50%; background: rgba(255, 243, 238, .10); border: 2px solid rgba(255, 243, 238, .28); pointer-events: none; transition: opacity .2s; opacity: .7; }
+.w-joy.on { background: rgba(255, 243, 238, .16); border-color: rgba(255, 243, 238, .5); opacity: 1; }
+.w-joy i { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; border-radius: 50%; background: rgba(242, 139, 168, .85); box-shadow: 0 4px 14px rgba(0, 0, 0, .4); transform: translate(-50%, -50%); }
+.w-tip { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
