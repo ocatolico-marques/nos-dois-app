@@ -20,7 +20,7 @@ self.addEventListener('notificationclick', function (e) {
   e.notification.close();
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
     for (var i = 0; i < list.length; i++) {
-      if ('focus' in list[i]) { if (!vale) list[i].postMessage({ type: 'recado-novo' }); return list[i].focus(); }
+      if ('focus' in list[i]) { var c = list[i]; if (vale) return c.focus(); if (c.navigate) return c.navigate('./?recado=1').then(function (n) { return (n || c).focus(); }, function () { c.postMessage({ type: 'recado-novo' }); return c.focus(); }); c.postMessage({ type: 'recado-novo' }); return c.focus(); }
     }
     return self.clients.openWindow(vale ? './' : './?recado=1');
   }));
