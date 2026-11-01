@@ -513,7 +513,7 @@ var CONFIG = {
   var USED_KEY = 'giovanna-vales', used = {};
   try { used = JSON.parse(localStorage.getItem(USED_KEY) || '{}'); } catch (e) { used = {}; }
   var saveUsed = function () { try { localStorage.setItem(USED_KEY, JSON.stringify(used)); } catch (e) {} };
-  var VCOST = [150, 100, 200, 120, 60, 100, 250];
+  var VCOST = [1500, 100, 200, 120, 60, 100, 250];
   var costOf = function (i) { return (CONFIG.vouchers[i] && CONFIG.vouchers[i].cost) || VCOST[i] || 100; };
   function renderVouchers() {
     var ul = $('vouchers'); ul.innerHTML = '';
