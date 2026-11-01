@@ -311,8 +311,41 @@ var CONFIG = {
   /* As fotos ficam no armazenamento privado do Supabase: só aparecem depois do login (nos.js chama setAlbumUrls). */
   var albumUrls = {}, albumLoaded = false;
   window.ALBUM_PATHS = [];
+  var lbList = [], lbIdx = 0, lbY = 0;
+  function lbShow(i) {
+    if (!lbList.length) return;
+    lbIdx = (i + lbList.length) % lbList.length;
+    var it = lbList[lbIdx];
+    $('lb-img').src = it.url; $('lb-img').alt = it.caption; $('lb-cap').textContent = it.caption;
+    var many = lbList.length > 1;
+    $('lb-prev').hidden = !many; $('lb-next').hidden = !many;
+  }
+  function lbOpen(i) {
+    lbShow(i);
+    lbY = window.scrollY;
+    document.body.style.top = -lbY + 'px'; document.body.classList.add('lb-open');
+    if (lb.showModal) lb.showModal(); else lb.setAttribute('open', '');
+  }
+  lb.addEventListener('close', function () {
+    document.body.classList.remove('lb-open'); document.body.style.top = '';
+    window.scrollTo(0, lbY);
+  });
+  $('lb-prev').addEventListener('click', function () { lbShow(lbIdx - 1); });
+  $('lb-next').addEventListener('click', function () { lbShow(lbIdx + 1); });
+  lb.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') lbShow(lbIdx - 1); else if (e.key === 'ArrowRight') lbShow(lbIdx + 1);
+  });
+  /* deslizar o dedo para o lado também troca de foto */
+  var lbX = null;
+  lb.addEventListener('touchstart', function (e) { lbX = e.touches.length === 1 ? e.touches[0].clientX : null; }, { passive: true });
+  lb.addEventListener('touchend', function (e) {
+    if (lbX === null) return;
+    var dx = e.changedTouches[0].clientX - lbX; lbX = null;
+    if (Math.abs(dx) > 50) lbShow(lbIdx + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+  lb.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
   function buildGallery() {
-    $('gallery').innerHTML = '';
+    $('gallery').innerHTML = ''; lbList = [];
     CONFIG.photos.forEach(function (p) {
       var url = p.src && albumUrls[p.src];
       var f = document.createElement('figure'); f.className = 'ph' + (url ? '' : ' empty');
@@ -320,10 +353,8 @@ var CONFIG = {
         f.innerHTML = '<button type="button"><img decoding="async" alt=""></button><figcaption></figcaption>';
         var im = f.querySelector('img'); im.src = url; im.alt = p.caption || 'Foto nossa';
         f.querySelector('figcaption').textContent = p.caption || '';
-        f.querySelector('button').addEventListener('click', function () {
-          $('lb-img').src = url; $('lb-img').alt = p.caption || ''; $('lb-cap').textContent = p.caption || '';
-          if (lb.showModal) lb.showModal(); else lb.setAttribute('open', '');
-        });
+        var at = lbList.push({ url: url, caption: p.caption || '' }) - 1;
+        f.querySelector('button').addEventListener('click', function () { lbOpen(at); });
       } else {
         f.style.aspectRatio = p.ratio || '4 / 5';
         f.innerHTML = '<div class="slot">' + cameraSvg + '<figcaption></figcaption><span>' + (!p.src ? 'Foto em breve' : albumLoaded ? 'Foto não encontrada' : 'Carregando…') + '</span></div>';

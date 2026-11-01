@@ -471,3 +471,11 @@ fieldset.q, .q > div, #q-input { min-width: 0; max-width: 100%; }
 input[type="date"].field { display: block; -webkit-appearance: none; appearance: none; width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; text-align: left; }
 input[type="date"].field::-webkit-date-and-time-value { text-align: left; min-width: 0; margin: 0; }
 html { overflow-x: hidden; }
+
+/* foto aberta: fundo travado e setas para trocar de foto */
+body.lb-open { position: fixed; left: 0; right: 0; width: 100%; overflow: hidden; }
+.lightbox { overscroll-behavior: contain; touch-action: none; }
+.lb-nav { position: fixed; top: 50%; translate: 0 -50%; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); background-color: #2A0E1F; color: var(--cream); font-size: 2rem; line-height: 1; padding: 0 0 4px; cursor: pointer; z-index: 2; }
+.lb-nav[hidden] { display: none; }
+.lb-prev { left: 8px; }
+.lb-next { right: 8px; }

@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Nós dois">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=26">
+<link rel="stylesheet" href="styles.css?v=27">
 </head>
 <body class="locked gated checking">
 <canvas id="petals" aria-hidden="true"></canvas>
@@ -267,6 +267,8 @@
 
 <dialog class="lightbox" id="lightbox" aria-label="Foto ampliada">
   <form method="dialog"><button class="lb-close" aria-label="Fechar">×</button></form>
+  <button class="lb-nav lb-prev" id="lb-prev" type="button" aria-label="Foto anterior">‹</button>
+  <button class="lb-nav lb-next" id="lb-next" type="button" aria-label="Próxima foto">›</button>
   <img id="lb-img" alt=""><p id="lb-cap"></p>
 </dialog>
 
@@ -290,7 +292,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="app.js?v=22"></script>
+<script src="app.js?v=23"></script>
 <script src="nos.js?v=16"></script>
 <script src="mundo.js?v=7"></script>
 </body>
