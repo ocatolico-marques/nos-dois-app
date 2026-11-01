@@ -309,7 +309,7 @@
   /* ---------- controles: joystick (toque e arraste em qualquer lugar da tela) ---------- */
   var joy = { x: 0, y: 0, on: false, id: null, ox: 0, oy: 0 }, keys = {};
   var joyEl = el('w-joy'), knob = el('w-knob'), JR = 52;
-  function joyHome() { var r = el('w-stage').getBoundingClientRect(); joyEl.style.left = (18 + 62) + 'px'; joyEl.style.top = (r.height - 150 - 62) + 'px'; knob.style.transform = 'translate(-50%,-50%)'; }
+  function joyHome() { var r = el('w-stage').getBoundingClientRect(); joyEl.style.left = '76px'; joyEl.style.top = (r.height - 192) + 'px'; knob.style.transform = 'translate(-50%,-50%)'; }
   function clearDirs() { joy.x = joy.y = 0; joy.on = false; joy.id = null; keys = {}; joyEl.classList.remove('on'); if (running) joyHome(); }
   function joyMove(e) {
     var dx = e.clientX - joy.ox, dy = e.clientY - joy.oy, d = Math.hypot(dx, dy), k = d > JR ? JR / d : 1;
@@ -320,9 +320,12 @@
   var stageEl = el('w-stage');
   stageEl.addEventListener('pointerdown', function (e) {
     if (paused || joy.on || e.target.closest('.w-tip, .w-card, .w-mission')) return;
-    var r = stageEl.getBoundingClientRect();
-    joy.on = true; joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY;
-    joyEl.style.left = (e.clientX - r.left) + 'px'; joyEl.style.top = (e.clientY - r.top) + 'px'; joyEl.classList.add('on');
+    var r = stageEl.getBoundingClientRect(), lx = e.clientX - r.left, ly = e.clientY - r.top;
+    if (lx > r.width * .6) return;
+    /* o joystick fica sempre no lado esquerdo e na parte de baixo, perto do polegar */
+    var cx = Math.max(76, Math.min(r.width * .38, lx)), cy = Math.max(r.height * .5, Math.min(r.height - 130, ly));
+    joy.on = true; joy.id = e.pointerId; joy.ox = r.left + cx; joy.oy = r.top + cy;
+    joyEl.style.left = cx + 'px'; joyEl.style.top = cy + 'px'; joyEl.classList.add('on');
     knob.style.transform = 'translate(-50%,-50%)';
     try { stageEl.setPointerCapture(e.pointerId); } catch (x) {}
     e.preventDefault();
