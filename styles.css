@@ -431,3 +431,8 @@ body::before { z-index: -2; }
 .w-card p { margin: 0 0 14px; line-height: 1.45; }
 .w-card .w-date { font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; color: #c94f73; margin: 0; }
 .w-card button { min-height: 48px; padding: 0 26px; border: 0; border-radius: 999px; background: #c94f73; color: #fff; font-size: 1rem; }
+
+.w-photos { display: flex; gap: 8px; justify-content: center; margin: 0 0 12px; }
+.w-photos[hidden] { display: none; }
+.w-photos img { flex: 1; min-width: 0; max-height: 34vh; object-fit: cover; border-radius: 12px; }
+.w-card { max-height: 86%; overflow: auto; }
