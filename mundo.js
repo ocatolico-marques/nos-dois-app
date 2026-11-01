@@ -236,7 +236,7 @@
     '<div class="w-stage" id="w-stage"><canvas id="w-canvas"></canvas>' +
     '<div class="w-mission" id="w-mission"><b id="w-m1"></b><span id="w-m2"></span></div>' +
     '<div class="w-toast" id="w-toast" hidden></div>' +
-    '<div class="w-pad" id="w-pad"><button type="button" data-d="u" aria-label="Cima">▲</button><button type="button" data-d="l" aria-label="Esquerda">◀</button><button type="button" data-d="r" aria-label="Direita">▶</button><button type="button" data-d="d" aria-label="Baixo">▼</button></div>' +
+    '<div class="w-joy" id="w-joy"><i id="w-knob"></i></div>' +
     '<button type="button" class="w-tip" id="w-tip">Lembranças</button>' +
     '<div class="w-card" id="w-card" hidden><div class="w-photos" id="w-photos"></div><p class="w-date" id="w-date"></p><h3 id="w-ctitle"></h3><p id="w-ctext"></p><button type="button" id="w-ok">Continuar</button></div>' +
     '<div class="w-card w-album" id="w-album" hidden><h3>Lembranças</h3><div id="w-list"></div><button type="button" id="w-album-ok">Fechar</button></div></div>';
@@ -261,7 +261,7 @@
     canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
     zoom = cw / (VIEW_TILES * TS);
   }
-  window.addEventListener('resize', function () { if (running) resize(); });
+  window.addEventListener('resize', function () { if (running) { resize(); joyHome(); } });
 
   function toast(msg) { var t = el('w-toast'); t.textContent = msg; t.hidden = false; toastT = 2.6; }
   function ptsNow() { return Pt() ? Pt().get() : 0; }
@@ -306,16 +306,29 @@
   el('w-tip').addEventListener('click', showAlbum);
   el('w-album-ok').addEventListener('click', function () { el('w-album').hidden = true; paused = false; last = performance.now(); });
 
-  /* ---------- controles ---------- */
-  var dir = { u: 0, d: 0, l: 0, r: 0 }, keys = {};
-  function clearDirs() { dir.u = dir.d = dir.l = dir.r = 0; keys = {}; [].forEach.call(root.querySelectorAll('.w-pad button'), function (b) { b.classList.remove('on'); }); }
-  [].forEach.call(root.querySelectorAll('.w-pad button'), function (b) {
-    var d = b.dataset.d;
-    function on(e) { e.preventDefault(); dir[d] = 1; b.classList.add('on'); try { b.setPointerCapture(e.pointerId); } catch (x) {} }
-    function off(e) { e.preventDefault(); dir[d] = 0; b.classList.remove('on'); }
-    b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('lostpointercapture', off);
-    b.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  /* ---------- controles: joystick (toque e arraste em qualquer lugar da tela) ---------- */
+  var joy = { x: 0, y: 0, on: false, id: null, ox: 0, oy: 0 }, keys = {};
+  var joyEl = el('w-joy'), knob = el('w-knob'), JR = 52;
+  function joyHome() { var r = el('w-stage').getBoundingClientRect(); joyEl.style.left = (18 + 62) + 'px'; joyEl.style.top = (r.height - 150 - 62) + 'px'; knob.style.transform = 'translate(-50%,-50%)'; }
+  function clearDirs() { joy.x = joy.y = 0; joy.on = false; joy.id = null; keys = {}; joyEl.classList.remove('on'); if (running) joyHome(); }
+  function joyMove(e) {
+    var dx = e.clientX - joy.ox, dy = e.clientY - joy.oy, d = Math.hypot(dx, dy), k = d > JR ? JR / d : 1;
+    knob.style.transform = 'translate(calc(-50% + ' + dx * k + 'px), calc(-50% + ' + dy * k + 'px))';
+    var m = Math.min(1, d / JR);
+    if (m < .18) { joy.x = joy.y = 0; } else { joy.x = dx / d * m; joy.y = dy / d * m; }
+  }
+  var stageEl = el('w-stage');
+  stageEl.addEventListener('pointerdown', function (e) {
+    if (paused || joy.on || e.target.closest('.w-tip, .w-card, .w-mission')) return;
+    var r = stageEl.getBoundingClientRect();
+    joy.on = true; joy.id = e.pointerId; joy.ox = e.clientX; joy.oy = e.clientY;
+    joyEl.style.left = (e.clientX - r.left) + 'px'; joyEl.style.top = (e.clientY - r.top) + 'px'; joyEl.classList.add('on');
+    knob.style.transform = 'translate(-50%,-50%)';
+    try { stageEl.setPointerCapture(e.pointerId); } catch (x) {}
+    e.preventDefault();
   });
+  stageEl.addEventListener('pointermove', function (e) { if (joy.on && e.pointerId === joy.id) joyMove(e); });
+  ['pointerup', 'pointercancel'].forEach(function (n) { stageEl.addEventListener(n, function (e) { if (joy.on && e.pointerId === joy.id) clearDirs(); }); });
   var KM = { ArrowUp: 'u', w: 'u', W: 'u', ArrowDown: 'd', s: 'd', S: 'd', ArrowLeft: 'l', a: 'l', A: 'l', ArrowRight: 'r', d: 'r', D: 'r' };
   document.addEventListener('keydown', function (e) { if (!running) return; if (e.key === 'Escape') { close(); return; } if (KM[e.key] && !paused) { keys[KM[e.key]] = 1; e.preventDefault(); } });
   document.addEventListener('keyup', function (e) { if (KM[e.key]) delete keys[KM[e.key]]; });
@@ -356,10 +369,10 @@
   function startPractice() { M.practice = true; dels = makeDeliveries((Math.random() * 1e9) | 0); M.k = 0; M.phase = 'pick'; refreshHud(); }
 
   function update(dt) {
-    var dx = (dir.r || keys.r ? 1 : 0) - (dir.l || keys.l ? 1 : 0), dy = (dir.d || keys.d ? 1 : 0) - (dir.u || keys.u ? 1 : 0);
+    var dx = joy.x + (keys.r ? 1 : 0) - (keys.l ? 1 : 0), dy = joy.y + (keys.d ? 1 : 0) - (keys.u ? 1 : 0);
     P.moving = !!(dx || dy);
     if (P.moving) {
-      var len = Math.hypot(dx, dy), sp = 112 * dt; dx = dx / len * sp; dy = dy / len * sp;
+      var len = Math.hypot(dx, dy), sp = 112 * Math.min(1, len) * dt; dx = dx / len * sp; dy = dy / len * sp;
       if (dx > 0) P.face = 1; else if (dx < 0) P.face = -1;
       if (!blocked(P.x + dx, P.y)) P.x += dx;
       if (!blocked(P.x, P.y + dy)) P.y += dy;
@@ -445,7 +458,8 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = '#1a1030'; ctx.fillRect(0, 0, cw, ch);
     var vw = cw / zoom, vh = ch / zoom, wx = W * TS, wy = H * TS;
     var camX = wx <= vw ? (wx - vw) / 2 : Math.max(0, Math.min(wx - vw, P.x - vw / 2));
-    var camY = wy <= vh ? (wy - vh) / 2 : Math.max(0, Math.min(wy - vh, P.y - vh / 2));
+    var padT = 78 / zoom, padB = 190 / zoom, minY = -padT, maxY = wy - vh + padB;
+    var camY = minY > maxY ? (wy - vh) / 2 : Math.max(minY, Math.min(maxY, P.y - vh * .45));
     ctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, -camX * zoom * dpr, -camY * zoom * dpr);
     ctx.imageSmoothingEnabled = true;
     ctx.drawImage(stat, 0, 0, wx, wy);
@@ -488,10 +502,10 @@
     /* seta na borda da tela apontando para o destino, quando ele está fora de vista */
     var tg = waiting ? { x: FEFE.x, y: FEFE.y } : d ? (function () { var q = M.phase === 'pick' ? d.a : d.b; return { x: q.x * TS + 16, y: q.y * TS + 16 }; })() : null;
     if (tg) {
-      var sx = (tg.x - camX) * zoom, sy = (tg.y - camY) * zoom, mg = 26;
-      if (sx < 0 || sy < 0 || sx > cw || sy > ch) {
-        var cx0 = cw / 2, cy0 = ch / 2, ang = Math.atan2(sy - cy0, sx - cx0), k2 = Math.min((cw / 2 - mg) / Math.abs(Math.cos(ang) || 1e-6), (ch / 2 - mg - 60) / Math.abs(Math.sin(ang) || 1e-6));
-        var ax = cx0 + Math.cos(ang) * k2, ay = cy0 + Math.sin(ang) * k2 + 0;
+      var sx = (tg.x - camX) * zoom, sy = (tg.y - camY) * zoom, mg = 26, top = 84, bot = ch - 196;
+      if (sx < 0 || sy < top || sx > cw || sy > bot) {
+        var cx0 = cw / 2, cy0 = (top + bot) / 2, ang = Math.atan2(sy - cy0, sx - cx0), k2 = Math.min((cw / 2 - mg) / Math.abs(Math.cos(ang) || 1e-6), ((bot - top) / 2 - mg) / Math.abs(Math.sin(ang) || 1e-6));
+        var ax = cx0 + Math.cos(ang) * k2, ay = cy0 + Math.sin(ang) * k2;
         ctx.save(); ctx.translate(ax, ay); ctx.rotate(ang); ctx.fillStyle = '#ffd86b'; ctx.strokeStyle = 'rgba(18,10,34,.8)'; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-8, -10); ctx.lineTo(-3, 0); ctx.lineTo(-8, 10); ctx.closePath(); ctx.stroke(); ctx.fill(); ctx.restore();
       }
@@ -514,7 +528,7 @@
     startDay(); makeCars();
     P.x = START.x; P.y = START.y; safe.x = P.x; safe.y = P.y; inv = 0;
     root.hidden = false; document.body.style.overflow = 'hidden'; running = true; paused = false;
-    resize(); refreshHud(); clearDirs();
+    resize(); refreshHud(); clearDirs(); joyHome();
     var t, b, txt;
     if (S.stars >= MEMS.length && !S.final) { t = 'O Fefe está te esperando'; b = 'Ir até a praça'; txt = 'Você abriu todas as lembranças. Ele está perto da fonte da praça.'; }
     else if (S.doneToday) { t = 'Hoje já valeu a estrela ★'; b = 'Treinar um pouco'; txt = 'Volte amanhã para a próxima lembrança. Enquanto isso, pode treinar sem ganhar pontos.'; }
