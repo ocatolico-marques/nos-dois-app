@@ -465,3 +465,9 @@ body::before { z-index: -2; }
 .g-max b { font-weight: 600; }
 .world-card .g-max { color: var(--champagne); }
 .world-card .g-max span { color: #ffd86b; }
+
+/* quiz no celular: o campo de data (iOS) não pode passar da largura do cartão */
+fieldset.q, .q > div, #q-input { min-width: 0; max-width: 100%; }
+input[type="date"].field { display: block; -webkit-appearance: none; appearance: none; width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; text-align: left; }
+input[type="date"].field::-webkit-date-and-time-value { text-align: left; min-width: 0; margin: 0; }
+html { overflow-x: hidden; }
