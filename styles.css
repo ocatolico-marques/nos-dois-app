@@ -402,3 +402,7 @@ body.checking .intro { display: none; }
 body { background: transparent; }
 body::before { z-index: -2; }
 #petals { z-index: -1; }
+
+/* linha do tempo só depois do quiz */
+#historia{display:none}
+.quiz-done #historia{display:block}
