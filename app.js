@@ -12,11 +12,11 @@ var CONFIG = {
   /* Sugestões: o namorado edita. */
   vouchers: [
     { t: 'Um jantar a dois', d: 'Você escolhe o restaurante.' },
-    { t: 'Uma noite de filme', d: 'Pipoca, cobertor e o filme que você quiser.' },
+    { t: 'Uma noite no cinema', d: 'Pipoca e o filme que você quiser.' },
     { t: 'Um dia sem celular', d: 'Só nós dois, de verdade.' },
     { t: 'Café da manhã especial', d: 'Preparado com carinho, do jeitinho que você gosta.' },
     { t: 'Cinco minutos de abraço', d: 'Sem pressa e sem interrupção.' },
-    { t: 'Um passeio sem destino', d: 'A gente vai e vê onde chega.' },
+    { t: 'Um piquenique no parque', d: 'Cesta, toalha e a gente num dia só nosso.' },
     { t: 'Um desejo seu', d: 'Um pedido razoável, sem perguntas.' }
   ],
   dates: ['Jantar a dois', 'Piquenique', 'Cinema com pipoca', 'Sorvete depois da missa', 'Pizza e filme em casa', 'Passeio sem destino', 'Café da tarde', 'Viagem-surpresa'],
@@ -513,7 +513,7 @@ var CONFIG = {
   var USED_KEY = 'giovanna-vales', used = {};
   try { used = JSON.parse(localStorage.getItem(USED_KEY) || '{}'); } catch (e) { used = {}; }
   var saveUsed = function () { try { localStorage.setItem(USED_KEY, JSON.stringify(used)); } catch (e) {} };
-  var VCOST = [1500, 100, 200, 120, 60, 100, 250];
+  var VCOST = [1500, 300, 200, 120, 60, 250, 250];
   var costOf = function (i) { return (CONFIG.vouchers[i] && CONFIG.vouchers[i].cost) || VCOST[i] || 100; };
   function renderVouchers() {
     var ul = $('vouchers'); ul.innerHTML = '';
