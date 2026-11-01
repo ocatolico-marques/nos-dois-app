@@ -459,3 +459,9 @@ body::before { z-index: -2; }
 .w-joy.on { background: rgba(255, 243, 238, .16); border-color: rgba(255, 243, 238, .5); opacity: 1; }
 .w-joy i { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; border-radius: 50%; background: rgba(242, 139, 168, .85); box-shadow: 0 4px 14px rgba(0, 0, 0, .4); transform: translate(-50%, -50%); }
 .w-tip { bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+
+.g-max { margin: -8px 0 16px; font-size: .95rem; color: var(--rose-deep); font-weight: 500; }
+.g-max span { color: #c9962f; }
+.g-max b { font-weight: 600; }
+.world-card .g-max { color: var(--champagne); }
+.world-card .g-max span { color: #ffd86b; }
