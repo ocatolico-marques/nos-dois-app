@@ -10,9 +10,9 @@
   /* ---------- lembranças (as mesmas da linha do tempo) ---------- */
   var MEMS = [
     { x: 6, y: 4, t: 'Tudo começou na paróquia', d: '', p: 'Frequentávamos a mesma paróquia. Foi ali que a nossa história começou.' },
-    { x: 6, y: 9, t: 'O dia que saímos pela primeira vez', d: '26 de janeiro de 2025', p: 'A primeira vez que a gente saiu juntos.' },
-    { x: 11, y: 19, t: 'O dia em que ficamos pela primeira vez', d: '1 de junho de 2025', p: 'Um dia que a gente nunca mais esqueceu.' },
-    { x: 21, y: 20, t: 'O pedido de namoro', d: '', p: 'Foi no Via Fico.' },
+    { x: 6, y: 9, t: 'O dia que saímos pela primeira vez', d: '26 de janeiro de 2025', p: 'A primeira vez que a gente saiu juntos.', ph: ['album/jogo-primeiro-encontro.jpg'] },
+    { x: 11, y: 19, t: 'O dia em que ficamos pela primeira vez', d: '1 de junho de 2025', p: 'Um dia que a gente nunca mais esqueceu.', ph: ['album/jogo-ficamos.jpg'] },
+    { x: 21, y: 20, t: 'O pedido de namoro', d: '', p: 'Foi no Via Fico.', ph: ['album/jogo-pedido-1.jpg', 'album/jogo-pedido-2.jpg'] },
     { x: 29, y: 8, t: 'Começamos a namorar', d: '1 de novembro de 2025', p: 'E dali em diante a gente virou nós dois.' },
     { x: 27, y: 33, t: 'Desde então', d: '', p: 'Já viajamos juntos, vivemos momentos incríveis, brigamos, demos risadas, e seguimos um ao lado do outro.' }
   ];
@@ -211,6 +211,17 @@
     return c;
   }
 
+  /* fotos: ficam no armazenamento privado e só aparecem para quem está logado */
+  var urls = {}, sbc = null;
+  function loadPhotos() {
+    if (sbc === null) { try { sbc = window.supabase.createClient('https://fapfosqocvtawkhgavap.supabase.co', 'sb_publishable_gklz-L7kiemOKagFhu5GWg_cUZdYk0J'); } catch (e) { sbc = false; } }
+    if (!sbc) return;
+    var paths = []; MEMS.forEach(function (m) { (m.ph || []).forEach(function (p) { paths.push(p); }); });
+    sbc.storage.from('nos').createSignedUrls(paths, 3600).then(function (r) {
+      (r.data || []).forEach(function (o) { if (o.signedUrl) urls[o.path] = o.signedUrl; });
+    }).catch(function () {});
+  }
+
   /* ---------- estado ---------- */
   var found = [], done = false;
   try { var sv = JSON.parse(localStorage.getItem(KEY) || '{}'); found = sv.found || []; done = !!sv.done; } catch (e) {}
@@ -242,7 +253,7 @@
     '<div class="w-hint" id="w-hint"></div>' +
     '<div class="w-pad" id="w-pad"><button type="button" data-d="u" aria-label="Cima">▲</button><button type="button" data-d="l" aria-label="Esquerda">◀</button><button type="button" data-d="r" aria-label="Direita">▶</button><button type="button" data-d="d" aria-label="Baixo">▼</button></div>' +
     '<button type="button" class="w-tip" id="w-tip">Dica</button>' +
-    '<div class="w-card" id="w-card" hidden><p class="w-date" id="w-date"></p><h3 id="w-ctitle"></h3><p id="w-ctext"></p><button type="button" id="w-ok">Continuar</button></div></div>';
+    '<div class="w-card" id="w-card" hidden><div class="w-photos" id="w-photos"></div><p class="w-date" id="w-date"></p><h3 id="w-ctitle"></h3><p id="w-ctext"></p><button type="button" id="w-ok">Continuar</button></div></div>';
   document.body.appendChild(root);
   var el = function (id) { return document.getElementById(id); };
   var canvas = el('w-canvas'), ctx = canvas.getContext('2d');
@@ -264,10 +275,13 @@
   function burst(cx, cy, n) {
     for (var k = 0; k < n; k++) parts.push({ x: cx, y: cy, vx: (Math.random() - .5) * 220, vy: -60 - Math.random() * 200, l: 1.6 + Math.random(), c: ['#f28ba8', '#ffb3cc', '#8fb0f2', '#ffd86b'][k % 4], s: 5 + Math.random() * 6 });
   }
-  function openCard(date, title, text, btn) {
+  function openCard(date, title, text, btn, ph) {
     paused = true; clearDirs();
     el('w-date').textContent = date; el('w-date').hidden = !date;
     el('w-ctitle').textContent = title; el('w-ctext').textContent = text; el('w-ok').textContent = btn || 'Continuar';
+    var box = el('w-photos'); box.innerHTML = '';
+    (ph || []).forEach(function (p) { if (urls[p]) { var im = document.createElement('img'); im.src = urls[p]; im.alt = ''; box.appendChild(im); } });
+    box.hidden = !box.children.length;
     el('w-card').hidden = false; el('w-ok').focus();
   }
   el('w-ok').addEventListener('click', function () { el('w-card').hidden = true; paused = false; last = performance.now(); });
@@ -339,7 +353,7 @@
       if (found.indexOf(n) > -1) return;
       if (Math.hypot(m.x * TS + 16 - P.x, m.y * TS + 16 - P.y) < 20) {
         found.push(n); save(); refreshHud(); burst(cw / 2, ch / 2, 26);
-        openCard(m.d, m.t, m.p, found.length === MEMS.length ? 'Ir até o Fefe' : 'Continuar');
+        openCard(m.d, m.t, m.p, found.length === MEMS.length ? 'Ir até o Fefe' : 'Continuar', m.ph);
       }
     });
     if (found.length === MEMS.length && !done && Math.hypot(FEFE.x * TS - P.x, FEFE.y * TS - P.y) < 26) {
@@ -449,6 +463,7 @@
 
   function open() {
     if (!stat) stat = buildStatic();
+    loadPhotos();
     root.hidden = false; document.body.style.overflow = 'hidden'; running = true; paused = false;
     resize(); refreshHud(); clearDirs();
     if (!found.length && !done) { openCard('', 'Bem-vinda à Vila Camilópolis', 'Passeie pelo bairro e ache as ' + MEMS.length + ' lembranças que estão brilhando por aí. Cuidado com os carros!', 'Vamos lá'); }
