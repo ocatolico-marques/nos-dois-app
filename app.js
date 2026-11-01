@@ -340,6 +340,39 @@ var CONFIG = {
   window.setAlbumUrls = function (m) { albumUrls = m || {}; albumLoaded = true; buildGallery(); buildMemory(); };
   lb.addEventListener('click', function (e) { if (e.target === lb) lb.close(); });
 
+  /* ---------- pontos: ganhos nos joguinhos, gastos nos vales ---------- */
+  var PTS_KEY = 'giovanna-pontos', pts = { bal: 0, total: 0, day: '', got: {} }, onPts = [];
+  try { var ps = JSON.parse(localStorage.getItem(PTS_KEY) || 'null'); if (ps && typeof ps.bal === 'number') pts = ps; } catch (e) {}
+  var todayKey = function () { var n = new Date(); return n.getFullYear() + '-' + pad2(n.getMonth() + 1) + '-' + pad2(n.getDate()); };
+  var savePts = function () { try { localStorage.setItem(PTS_KEY, JSON.stringify(pts)); } catch (e) {} };
+  var ptsToastT = 0;
+  function ptsToast(msg) {
+    var t = $('pts-toast'); if (!t) { t = document.createElement('div'); t.id = 'pts-toast'; t.setAttribute('aria-live', 'polite'); document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('on'); clearTimeout(ptsToastT); ptsToastT = setTimeout(function () { t.classList.remove('on'); }, 2600);
+  }
+  function drawPts() {
+    [].forEach.call(document.querySelectorAll('.pts-pill b'), function (b) { b.textContent = pts.bal; });
+    onPts.forEach(function (f) { f(); });
+  }
+  window.Pontos = {
+    get: function () { return pts.bal; },
+    /* ganha pontos de um jogo, com limite por dia (para ela voltar amanhã) */
+    earn: function (game, n, cap) {
+      var d = todayKey(); if (pts.day !== d) { pts.day = d; pts.got = {}; }
+      var g = Math.max(0, Math.min(Math.round(n), cap - (pts.got[game] || 0)));
+      if (g <= 0) { ptsToast(n > 0 ? 'Limite de pontos de hoje nesse jogo. Volte amanhã!' : ''); return 0; }
+      pts.got[game] = (pts.got[game] || 0) + g; pts.bal += g; pts.total += g; savePts(); drawPts();
+      ptsToast('+' + g + ' pontos'); return g;
+    },
+    spend: function (n) { if (pts.bal < n) return false; pts.bal -= n; savePts(); drawPts(); return true; },
+    onChange: function (f) { onPts.push(f); }
+  };
+  ['jogos', 'vales'].forEach(function (v) {
+    var lead = document.querySelector('#view-' + v + ' .page-head .lead'); if (!lead) return;
+    var p = document.createElement('p'); p.className = 'pts-pill'; p.innerHTML = '<span aria-hidden="true">★</span> <b>0</b> pontos'; lead.after(p);
+  });
+  drawPts();
+
   /* ---------- jogo da memória ---------- */
   var ICONS = [
     ['Coração', 'M12 21C5 15.8 3 12.5 3 9.5A4.5 4.5 0 0 1 7.5 5C9.2 5 10.9 5.9 12 7.4 13.1 5.9 14.8 5 16.5 5A4.5 4.5 0 0 1 21 9.5c0 3-2 6.3-9 11.5Z'],
@@ -380,6 +413,8 @@ var CONFIG = {
       if (memMatched === memPairs) {
         $('mem-status').textContent = 'Todos os pares em ' + memMoves + ' jogadas. Você tem ótima memória, minha princesa.';
         petals.burst();
+        var gm = window.Pontos.earn('memoria', Math.max(10, 40 - 3 * (memMoves - memPairs)), 40);
+        if (gm) $('mem-status').textContent += ' +' + gm + ' pontos.';
       }
     } else {
       memLock = true;
@@ -432,6 +467,8 @@ var CONFIG = {
       cStatus.textContent = 'Fim! Você pegou ' + score + ' pétalas.';
       cBtn.disabled = false; cBtn.textContent = 'Jogar de novo';
       if (score >= 25) petals.burst();
+      var gp = window.Pontos.earn('petalas', score, 30);
+      if (gp) cStatus.textContent += ' +' + gp + ' pontos.';
     }
     cRun = { raf: 0 }; cRun.raf = requestAnimationFrame(frame);
   });
@@ -465,7 +502,7 @@ var CONFIG = {
     for (var i = 3; i < d.length; i += 64) { total++; if (d[i] < 40) clear++; }
     if (clear / total > .5) revealScratch();
   }
-  function revealScratch() { if (scDone) return; scDone = true; sc.classList.add('gone'); petals.burst(); }
+  function revealScratch() { if (scDone) return; scDone = true; sc.classList.add('gone'); petals.burst(); window.Pontos.earn('raspadinha', 5, 10); }
   sc.addEventListener('pointerdown', function (e) { scDrawing = true; sc.setPointerCapture(e.pointerId); scratchAt(e); });
   sc.addEventListener('pointermove', function (e) { if (scDrawing) scratchAt(e); });
   sc.addEventListener('pointerup', function () { scDrawing = false; if (sctx && !scDone) checkScratch(); });
@@ -476,15 +513,20 @@ var CONFIG = {
   var USED_KEY = 'giovanna-vales', used = {};
   try { used = JSON.parse(localStorage.getItem(USED_KEY) || '{}'); } catch (e) { used = {}; }
   var saveUsed = function () { try { localStorage.setItem(USED_KEY, JSON.stringify(used)); } catch (e) {} };
+  var VCOST = [150, 100, 200, 120, 60, 100, 250];
+  var costOf = function (i) { return (CONFIG.vouchers[i] && CONFIG.vouchers[i].cost) || VCOST[i] || 100; };
   function renderVouchers() {
     var ul = $('vouchers'); ul.innerHTML = '';
     CONFIG.vouchers.forEach(function (v, i) {
       var li = document.createElement('li'); li.className = 'voucher' + (used[i] ? ' used' : '');
-      li.innerHTML = '<span class="v-no"></span><h3></h3><p></p><button class="btn" type="button"></button>';
+      li.innerHTML = '<span class="v-no"></span><h3></h3><p></p><span class="v-cost"></span><button class="btn" type="button"></button>';
       li.querySelector('.v-no').textContent = 'Vale nº ' + pad2(i + 1);
       li.querySelector('h3').textContent = v.t; li.querySelector('p').textContent = v.d;
       var b = li.querySelector('button');
+      var cost = costOf(i), have = window.Pontos.get();
+      li.querySelector('.v-cost').textContent = used[i] ? '' : cost + ' pontos';
       if (used[i]) { b.textContent = 'Resgatado em ' + used[i]; b.disabled = true; }
+      else if (have < cost) { b.textContent = 'Faltam ' + (cost - have) + ' pontos'; b.disabled = true; b.classList.add('need'); }
       else { b.textContent = 'Resgatar'; b.addEventListener('click', function () { askRedeem(i, b); }); }
       ul.appendChild(li);
     });
@@ -492,13 +534,13 @@ var CONFIG = {
   var cf = $('confirm'), cfFrom = null, cfIndex = -1;
   function askRedeem(i, btn) {
     cfIndex = i; cfFrom = btn;
-    $('cf-name').textContent = '“' + CONFIG.vouchers[i].t + '”';
+    $('cf-name').textContent = '“' + CONFIG.vouchers[i].t + '” por ' + costOf(i) + ' pontos';
     cf.returnValue = ''; cf.showModal();
   }
   cf.addEventListener('click', function (e) { if (e.target === cf) cf.close('no'); });
   cf.addEventListener('close', function () {
     var i = cfIndex; cfIndex = -1;
-    if (cf.returnValue === 'yes' && i > -1 && !used[i]) {
+    if (cf.returnValue === 'yes' && i > -1 && !used[i] && window.Pontos.spend(costOf(i))) {
       var n = new Date(); used[i] = pad2(n.getDate()) + '/' + pad2(n.getMonth() + 1);
       saveUsed(); petals.burst(); renderVouchers();
     } else if (cfFrom && document.contains(cfFrom)) cfFrom.focus();
@@ -509,8 +551,11 @@ var CONFIG = {
     rb.innerHTML = '<button class="link" id="reset-vouchers" type="button">Reativar todos os vales</button>';
     $('vouchers').after(rb);
     $('reset-vouchers').addEventListener('click', function () { used = {}; saveUsed(); renderVouchers(); });
+    var tb = document.createElement('button'); tb.className = 'link'; tb.type = 'button'; tb.textContent = '+300 pontos (teste)'; rb.appendChild(tb);
+    tb.addEventListener('click', function () { pts.bal += 300; savePts(); drawPts(); });
   }
   renderVouchers();
+  window.Pontos.onChange(renderVouchers);
 
   /* ---------- roleta do date ---------- */
   var wc = $('wheel'), wx = wc.getContext('2d'), rot = 0, spinning = false;
@@ -540,7 +585,7 @@ var CONFIG = {
       var n = CONFIG.dates.length, a = Math.PI * 2 / n, theta = ((-Math.PI / 2 - rot) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
       var idx = Math.floor(theta / a);
       $('wheel-result').textContent = 'Hoje é dia de: ' + CONFIG.dates[idx];
-      spinning = false; $('spin').disabled = false; petals.burst();
+      spinning = false; $('spin').disabled = false; petals.burst(); window.Pontos.earn('roleta', 5, 5);
     })(t0);
   });
 
