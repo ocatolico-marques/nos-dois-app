@@ -479,3 +479,7 @@ body.lb-open { position: fixed; left: 0; right: 0; width: 100%; overflow: hidden
 .lb-nav[hidden] { display: none; }
 .lb-prev { left: 8px; }
 .lb-next { right: 8px; }
+
+.pass-wrap { position: relative; }
+.pass-wrap .field { padding-right: 92px; }
+.pass-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 44px; padding: 0 14px; border: 0; border-radius: 10px; background: transparent; color: var(--rose-deep); font: inherit; font-size: .9375rem; font-weight: 500; cursor: pointer; }

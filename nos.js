@@ -107,6 +107,16 @@
     sb.from('resgates').insert({ vale: nome, custo: custo }).then(function () {}, function () {});
   };
 
+  /* olho da senha: mostra ou esconde o que foi digitado */
+  $('nos-pass-toggle').addEventListener('click', function () {
+    var f = $('nos-pass'), ver = f.type === 'password';
+    f.type = ver ? 'text' : 'password';
+    this.textContent = ver ? 'Ocultar' : 'Mostrar';
+    this.setAttribute('aria-pressed', ver ? 'true' : 'false');
+    this.setAttribute('aria-label', ver ? 'Ocultar senha' : 'Mostrar senha');
+    f.focus();
+  });
+
   /* ---------- login ---------- */
   $('nos-login-form').addEventListener('submit', async function (e) {
     e.preventDefault();
@@ -115,7 +125,7 @@
     var r = await sb.auth.signInWithPassword({ email: $('nos-email').value.trim(), password: $('nos-pass').value });
     btn.disabled = false;
     if (r.error) { setMsg(msg, 'E-mail ou senha incorretos.', true); return; }
-    setMsg(msg, ''); $('nos-pass').value = '';
+    setMsg(msg, ''); $('nos-pass').value = ''; $('nos-pass').type = 'password';
     window.nosAuthed = true; render(r.data.user);
     window.openApp();
   });

@@ -16,7 +16,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Nós dois">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=27">
+<link rel="stylesheet" href="styles.css?v=28">
 </head>
 <body class="locked gated checking">
 <canvas id="petals" aria-hidden="true"></canvas>
@@ -34,7 +34,10 @@
       <label for="nos-email">E-mail</label>
       <input class="field" id="nos-email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" required>
       <label for="nos-pass">Senha</label>
-      <input class="field" id="nos-pass" type="password" autocomplete="current-password" required>
+      <div class="pass-wrap">
+        <input class="field" id="nos-pass" type="password" autocomplete="current-password" required>
+        <button class="pass-toggle" id="nos-pass-toggle" type="button" aria-label="Mostrar senha" aria-pressed="false">Mostrar</button>
+      </div>
       <button class="btn" type="submit">Entrar</button>
       <p class="gate-msg" id="nos-login-msg" role="status"></p>
     </form>
@@ -293,7 +296,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="app.js?v=24"></script>
-<script src="nos.js?v=17"></script>
+<script src="nos.js?v=18"></script>
 <script src="mundo.js?v=7"></script>
 </body>
 </html>
