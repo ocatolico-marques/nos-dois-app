@@ -587,9 +587,13 @@ var CONFIG = {
   /* pontos e vales ficam na conta (Supabase); nos.js lê e grava por aqui */
   window.Pontos.estado = function () { return { bal: pts.bal, total: pts.total, day: pts.day, got: pts.got, used: used }; };
   window.Pontos.carregar = function (r) {
-    pts = { bal: r.bal || 0, total: r.total || 0, day: r.day || "", got: r.got || {} }; used = r.used || {};
+    /* nunca perde pontos: vale o lado que já ganhou mais (total só cresce); os vales resgatados dos dois lados somam */
+    var merged = Object.assign({}, r.used || {}, used), keepLocal = (pts.total || 0) > (r.total || 0);
+    if (!keepLocal) pts = { bal: r.bal || 0, total: r.total || 0, day: r.day || "", got: r.got || {} };
+    used = merged;
     try { localStorage.setItem(PTS_KEY, JSON.stringify(pts)); localStorage.setItem(USED_KEY, JSON.stringify(used)); } catch (e) {}
     drawPts(); renderVouchers();
+    if (keepLocal && window.onJogoSalvar) window.onJogoSalvar();
   };
 
   /* abrir direto numa página (#album, #jogos, #vales): só depois de tudo estar montado */
