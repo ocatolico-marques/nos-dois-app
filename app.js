@@ -540,7 +540,7 @@ var CONFIG = {
   var USED_KEY = 'giovanna-vales', used = {};
   try { used = JSON.parse(localStorage.getItem(USED_KEY) || '{}'); } catch (e) { used = {}; }
   var saveUsed = function () { try { localStorage.setItem(USED_KEY, JSON.stringify(used)); } catch (e) {} if (window.onJogoSalvar) window.onJogoSalvar(); };
-  var VCOST = [1500, 300, 200, 120, 60, 250, 550];
+  var VCOST = [15000, 9000, 3000, 5000, 2000, 6000, 12000];
   var costOf = function (i) { return (CONFIG.vouchers[i] && CONFIG.vouchers[i].cost) || VCOST[i] || 100; };
   function renderVouchers() {
     var ul = $('vouchers'); ul.innerHTML = '';
