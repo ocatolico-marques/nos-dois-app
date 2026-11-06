@@ -440,7 +440,7 @@ var CONFIG = {
       if (memMatched === memPairs) {
         $('mem-status').textContent = 'Todos os pares em ' + memMoves + ' jogadas. Você tem ótima memória, minha princesa.';
         petals.burst();
-        var gm = window.Pontos.earn('memoria', Math.max(10, 40 - 3 * (memMoves - memPairs)), 40);
+        var gm = window.Pontos.earn('memoria', Math.max(10, 50 - 3 * (memMoves - memPairs)), 50);
         if (gm) $('mem-status').textContent += ' +' + gm + ' pontos.';
       }
     } else {
@@ -494,7 +494,7 @@ var CONFIG = {
       cStatus.textContent = 'Fim! Você pegou ' + score + ' pétalas.';
       cBtn.disabled = false; cBtn.textContent = 'Jogar de novo';
       if (score >= 25) petals.burst();
-      var gp = window.Pontos.earn('petalas', score, 30);
+      var gp = window.Pontos.earn('petalas', score, 40);
       if (gp) cStatus.textContent += ' +' + gp + ' pontos.';
     }
     cRun = { raf: 0 }; cRun.raf = requestAnimationFrame(frame);
@@ -540,7 +540,7 @@ var CONFIG = {
   var USED_KEY = 'giovanna-vales', used = {};
   try { used = JSON.parse(localStorage.getItem(USED_KEY) || '{}'); } catch (e) { used = {}; }
   var saveUsed = function () { try { localStorage.setItem(USED_KEY, JSON.stringify(used)); } catch (e) {} if (window.onJogoSalvar) window.onJogoSalvar(); };
-  var VCOST = [15000, 9000, 3000, 5000, 2000, 6000, 12000];
+  var VCOST = [9000, 6000, 1500, 4000, 1000, 4500, 7500];
   var costOf = function (i) { return (CONFIG.vouchers[i] && CONFIG.vouchers[i].cost) || VCOST[i] || 100; };
   function renderVouchers() {
     var ul = $('vouchers'); ul.innerHTML = '';
