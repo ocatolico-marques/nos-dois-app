@@ -352,7 +352,7 @@
   function deliveryDone() {
     burst(cw / 2, ch / 2, 22);
     if (M.practice) { toast('Entrega feita! (treino, sem pontos)'); M.k = (M.k + 1) % 3; if (!M.k) dels = makeDeliveries((Math.random() * 1e9) | 0); M.phase = 'pick'; refreshHud(); return; }
-    var g = Pt() && Pt().earn('mundo', 5, 60);
+    var g = Pt() && Pt().earn('mundo', 5, 50);
     S.k++; save();
     if (S.k >= 3) { dayWon(g); return; }
     M.k = S.k; M.phase = 'pick'; toast('Entrega feita!' + (g ? ' +' + g + ' pontos' : '') + ' Próxima.'); refreshHud();
@@ -361,7 +361,7 @@
     S.doneToday = true; var today = dayStr();
     S.streak = S.lastStar === dayStr(-1) ? S.streak + 1 : 1; S.lastStar = today;
     var n = S.stars; S.stars = Math.min(S.stars + 1, MEMS.length); save();
-    var bonus = Pt() ? Pt().earn('mundo', 25, 60) : 0;
+    var bonus = Pt() ? Pt().earn('mundo', 35, 50) : 0;
     burst(cw / 2, ch / 2, 60); refreshHud();
     if (n >= MEMS.length) { startPractice(); return; }
     var m = MEMS[n];
